@@ -58,3 +58,20 @@ src/
 ├── stores/         # Pinia 상태 관리 (Global State)
 ├── router/         # Vue Router 설정
 └── App.vue         # Root Component
+```
+
+## 🚀 시작 가이드 (Getting Started)
+Prerequisites
+Node.js 18.0.0 이상 설치 필요
+
+### Install
+```bash
+# 1. 저장소 클론
+git clone [https://github.com/SSOOK-SSOOK/SSOOK_Front.git](https://github.com/SSOOK-SSOOK/SSOOK_Front.git)
+
+# 2. 패키지 설치
+npm install
+
+# 3. 개발 서버 실행
+npm run dev
+```
