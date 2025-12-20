@@ -2,7 +2,7 @@ import api from './http';
 
 // 로그인
 export function login(loginId, password) {
-    return api.post('/users/login', { loginId, password });
+    return api.post('/users/login', { email: loginId, password });
 }
 
 // 회원가입
