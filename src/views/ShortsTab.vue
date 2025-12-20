@@ -67,10 +67,11 @@
 
                         <!-- Comment -->
                         <div class="d-flex flex-column align-items-center">
-                            <button class="btn btn-icon text-white p-0">
+                            <button @click="openCommentSheet(video.videoId)" class="btn btn-icon text-white p-0">
                                 <i class="bi bi-chat-dots-fill fs-1 shadow-icon"></i>
                             </button>
-                            <span class="small fw-bold text-shadow">0</span>
+                            <!-- Use video.commentCount from backend (Requires server restart) -->
+                            <span class="small fw-bold text-shadow">{{ video.commentCount || 0 }}</span>
                         </div>
 
                         <!-- Share -->
@@ -90,17 +91,43 @@
              <div class="spinner-border spinner-border-sm" role="status"></div>
         </div>
     </div>
+
+    <!-- Comment Sheet -->
+    <CommentSheet 
+        ref="commentSheetRef" 
+        :video-id="selectedVideoId" 
+        @update-count="handleUpdateCount"
+    />
   </div>
 </template>
 
 <script setup>
 import { onMounted, ref, watch, nextTick } from 'vue';
 import { useVideoStore } from '@/stores/video';
+import CommentSheet from '@/components/comment/CommentSheet.vue';
+import { Offcanvas } from 'bootstrap';
 
 const videoStore = useVideoStore();
 const feedContainer = ref(null);
 const videoItems = ref([]);
 const activeIndex = ref(0);
+const selectedVideoId = ref(null);
+const commentSheetRef = ref(null);
+
+const openCommentSheet = (videoId) => {
+    selectedVideoId.value = videoId;
+    // Trigger load on component
+    if (commentSheetRef.value) {
+        commentSheetRef.value.loadComments(videoId);
+    }
+    
+    // Open Offcanvas
+    const el = document.getElementById('commentOffcanvas');
+    if (el) {
+        const bsOffcanvas = Offcanvas.getOrCreateInstance(el);
+        bsOffcanvas.show();
+    }
+};
 
 // Extract ID logic
 const getYoutubeId = (url) => {
@@ -135,6 +162,7 @@ const shouldRender = (index) => {
 
 onMounted(async () => {
     await videoStore.fetchVideos();
+    console.log('[DEBUG ShortsTab] Videos:', videoStore.videos);
     
     // Setup Intersection Observer for snapping/active detection
     const options = {
@@ -218,6 +246,18 @@ watch(activeIndex, async () => {
 
 const handleLike = (videoId) => {
     videoStore.toggleLike(videoId);
+};
+
+const handleUpdateCount = ({ videoId, delta }) => {
+    const video = videoStore.videos.find(v => v.videoId === videoId);
+    if (video) {
+        // Init if undefined
+        if (typeof video.commentCount !== 'number') {
+            video.commentCount = 0;
+        }
+        video.commentCount += delta;
+        if (video.commentCount < 0) video.commentCount = 0;
+    }
 };
 </script>
 
