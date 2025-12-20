@@ -4,11 +4,15 @@
       <router-view />
     </main>
     <BottomNav v-if="!$route.meta.hideBottomNav" />
+    <ToastContainer />
+    <ConfirmDialog />
   </div>
 </template>
 
 <script setup>
 import BottomNav from './components/layout/BottomNav.vue'
+import ToastContainer from './components/common/ToastContainer.vue'
+import ConfirmDialog from './components/common/ConfirmDialog.vue'
 </script>
 
 <style>
