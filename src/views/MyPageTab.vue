@@ -1,62 +1,127 @@
 <template>
-  <div class="p-3 text-white">
-    <h2>마이페이지</h2>
-    
-    <div v-if="authStore.user" class="profile-section mt-5 text-center">
-        <div class="avatar bg-secondary rounded-circle d-inline-block mb-3" style="width: 100px; height: 100px;"></div>
-        <h3 class="fw-bold">{{ authStore.user.nickname }}</h3>
-        <p class="text-secondary">{{ authStore.user.email }}</p>
-        <p class="text-light mt-3">{{ authStore.user.intro || '자기소개가 없습니다.' }}</p>
+  <div class="page-container text-white">
+    <!-- 상단 헤더 (틱톡 스타일) -->
+    <div class="header d-flex justify-content-center align-items-center py-3 border-bottom border-dark">
+      <span class="fw-bold fs-5">{{ authStore.user?.nickname || '마이페이지' }}</span>
+      <i class="bi bi-list position-absolute end-0 me-3 fs-4"></i>
     </div>
-    <div v-else class="text-center mt-5">
-      <div class="spinner-border text-light" role="status">
-        <span class="visually-hidden">Loading...</span>
+
+    <!-- 프로필 섹션 -->
+    <div class="profile-section text-center mt-4">
+      <div class="avatar-container mb-3 position-relative d-inline-block">
+        <div class="avatar rounded-circle bg-secondary d-flex justify-content-center align-items-center">
+             <i class="bi bi-person-fill text-white" style="font-size: 3rem;"></i>
+        </div>
+        <div class="add-icon bg-primary text-white rounded-circle position-absolute bottom-0 end-0 d-flex justify-content-center align-items-center">
+            <i class="bi bi-plus"></i>
+        </div>
       </div>
+      
+      <h3 class="fw-bold fs-4 mb-1">@{{ authStore.user?.nickname }}</h3>
+      
+      <!-- 팔로잉/팔로워 (더미 데이터 or 추후 구현) -->
+      <div class="d-flex justify-content-center gap-4 my-3 text-center">
+          <div>
+              <div class="fw-bold fs-5">0</div>
+              <div class="text-secondary small">팔로잉</div>
+          </div>
+          <div>
+              <div class="fw-bold fs-5">0</div>
+              <div class="text-secondary small">팔로워</div>
+          </div>
+          <div>
+              <div class="fw-bold fs-5">0</div>
+              <div class="text-secondary small">좋아요</div>
+          </div>
+      </div>
+      
+      <!-- 버튼 그룹 -->
+      <div class="d-flex justify-content-center gap-2 px-4 mt-4">
+        <button @click="$router.push('/profile/edit')" class="btn btn-dark border-secondary text-white flex-grow-1 py-2 fw-semibold">
+            프로필 편집
+        </button>
+        <button @click="handleLogout" class="btn btn-dark border-secondary text-white flex-grow-0 px-3 py-2">
+            <i class="bi bi-box-arrow-right"></i>
+        </button>
+      </div>
+
+      <!-- 한줄 소개 -->
+      <div class="mt-4 px-4 text-start">
+         <p class="text-light text-break" style="white-space: pre-line;">{{ authStore.user?.intro || '자기소개를 입력해보세요.' }}</p>
+      </div>
+      
+    </div>
+    
+    <!-- 탭 메뉴 (비디오/좋아요 등) placeholder -->
+    <div class="d-flex border-top border-dark mt-4">
+        <div class="flex-grow-1 text-center py-3 border-bottom border-white">
+            <i class="bi bi-grid-3x3 fs-5"></i>
+        </div>
+        <div class="flex-grow-1 text-center py-3 text-secondary">
+             <i class="bi bi-heart fs-5"></i>
+        </div>
+        <div class="flex-grow-1 text-center py-3 text-secondary">
+             <i class="bi bi-lock fs-5"></i>
+        </div>
+    </div>
+    
+    <!-- 비디오 그리드 Placeholder -->
+    <div class="row g-1 mt-0">
+        <div class="col-4" v-for="n in 9" :key="n">
+            <div class="bg-secondary bg-opacity-25 ratio ratio-1x1 d-flex justify-content-center align-items-center">
+                <span class="text-secondary small">Video {{ n }}</span>
+            </div>
+        </div>
     </div>
 
-    <div class="mt-5 d-grid gap-2 col-8 mx-auto">
-      <button @click="handleLogout" class="btn btn-outline-danger py-2 fw-bold">
-        로그아웃
-      </button>
-    </div>
-
-    <div class="mt-3 text-center">
-       <button @click="handleWithdraw" class="btn btn-link text-secondary text-decoration-none small">
-        회원 탈퇴
-      </button>
-    </div>
   </div>
 </template>
 
 <script setup>
 import { onMounted } from 'vue';
 import { useAuthStore } from '@/stores/auth';
-import { withdraw } from '@/api/user'; // Assuming withdraw logic exists
 import { useRouter } from 'vue-router';
 
 const authStore = useAuthStore();
 const router = useRouter();
 
-onMounted(() => {
-  if (!authStore.user) {
-    authStore.fetchUserInfo();
-  }
+onMounted(async () => {
+    // 마이페이지 진입 시 최신 정보 갱신
+    if (authStore.isAuthenticated) {
+        await authStore.fetchUserInfo();
+    }
 });
 
 const handleLogout = () => {
-  authStore.logout();
-};
-
-const handleWithdraw = async () => {
-  if(confirm('정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
-     try {
-       await withdraw(authStore.user.user_id); // Assuming user object has user_id
-       alert('탈퇴되었습니다.');
-       authStore.logout();
-     } catch (e) {
-       console.error(e);
-       alert('탈퇴 처리에 실패했습니다.');
-     }
+  if (confirm('로그아웃 하시겠습니까?')) {
+      authStore.logout();
   }
-}
+};
 </script>
+
+<style scoped>
+.avatar {
+    width: 96px;
+    height: 96px;
+    background-color: #333;
+}
+
+.add-icon {
+    width: 24px;
+    height: 24px;
+    border: 2px solid #121212;
+}
+
+.btn-dark {
+    background-color: #333;
+    border-color: #444;
+}
+
+.btn-dark:hover {
+    background-color: #444;
+}
+
+.text-secondary {
+    color: #8c8c8c !important;
+}
+</style>

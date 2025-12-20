@@ -6,6 +6,7 @@ import SubscribeTab from '../views/SubscribeTab.vue'
 import MyPageTab from '../views/MyPageTab.vue'
 import LoginView from '../views/LoginView.vue'
 import SignupView from '../views/SignupView.vue'
+import ProfileEditView from '../views/ProfileEditView.vue'
 
 const routes = [
     {
@@ -27,6 +28,11 @@ const routes = [
         path: '/mypage',
         component: MyPageTab,
         meta: { requiresAuth: true }
+    },
+    {
+        path: '/profile/edit',
+        component: ProfileEditView,
+        meta: { requiresAuth: true, hideBottomNav: true }
     },
     {
         path: '/login',
