@@ -24,14 +24,9 @@ export const useAuthStore = defineStore('auth', () => {
     const login = async (loginId, password) => {
         try {
             const response = await apiLogin(loginId, password);
-            // API_SPEC: Login response might return token in header, or data. 
-            // Spec says: "로그인 성공 시 Response Header에 token 키로 JWT가 전달됩니다."
-            // Axios interceptor or here we need to extract header.
-            // Let's assume the component/api call handles header extraction or we do it here.
-            // Since `api.post` returns the response object, we can access headers.
 
-            const authToken = response.headers['token'] || response.data.token;
-            // Fallback to data.token just in case, but spec says header.
+            // API_SPEC: Login response might return token in header (case-insensitive search recommended)
+            const authToken = response.headers['token'] || response.headers['Token'] || response.data.token;
 
             if (authToken) {
                 setToken(authToken);
