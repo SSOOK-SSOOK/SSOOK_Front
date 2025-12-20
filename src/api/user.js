@@ -1,16 +1,5 @@
 import api from './http';
 
-// 회원가입
-export function signup(data) {
-    // data: { loginId, password, nickname, ... }
-    return api.post('/users/signup', data);
-}
-
-// 로그인
-export function login(loginId, password) {
-    return api.post('/users/login', { loginId, password });
-}
-
 // 내 정보 조회
 export function getMyInfo() {
     return api.get('/users/me');
