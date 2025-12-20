@@ -3,7 +3,7 @@
     <main class="content-area">
       <router-view />
     </main>
-    <BottomNav />
+    <BottomNav v-if="!$route.meta.hideBottomNav" />
   </div>
 </template>
 
