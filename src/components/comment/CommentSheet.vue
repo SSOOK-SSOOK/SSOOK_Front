@@ -347,7 +347,8 @@ const handleUpdate = async (commentId, parentId = null) => {
 
     } catch (error) {
         console.error("Failed to update comment", error);
-        toastStore.addToast('댓글 수정에 실패했습니다.', 'error');
+        const message = error.response?.data?.message || '댓글 수정에 실패했습니다.';
+        toastStore.addToast(message, 'error');
     }
 };
 
@@ -380,7 +381,8 @@ const handleCreate = async () => {
 
         } catch (error) {
             console.error("Failed to post reply", error);
-            toastStore.addToast('답글 작성에 실패했습니다.', 'error');
+            const message = error.response?.data?.message || '답글 작성에 실패했습니다.';
+            toastStore.addToast(message, 'error');
         }
         return;
     }
@@ -404,7 +406,9 @@ const handleCreate = async () => {
 
     } catch (error) {
         console.error("Failed to post comment", error);
-        toastStore.addToast('댓글 작성에 실패했습니다.', 'error');
+        
+        const message = error.response?.data?.message || '댓글 작성에 실패했습니다.';
+        toastStore.addToast(message, 'error');
     }
 };
 
