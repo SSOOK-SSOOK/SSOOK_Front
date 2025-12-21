@@ -59,10 +59,17 @@
 
                         <!-- Like -->
                         <div class="d-flex flex-column align-items-center">
-                            <button @click="handleLike(video.videoId)" class="btn btn-icon text-white p-0">
-                                <i class="bi bi-heart-fill fs-1 shadow-icon" style="color: #fe2c55;"></i> <!-- Hardcoded active for demo, logic needed -->
+                            <button @click="handleLike(video)" class="btn btn-icon text-white p-0">
+                                <i 
+                                    class="bi fs-1 shadow-icon heart-icon" 
+                                    :class="{
+                                        'bi-heart-fill text-danger': video.liked, 
+                                        'bi-heart': !video.liked,
+                                        'animate-heart': video.isAnimating
+                                    }"
+                                ></i>
                             </button>
-                            <span class="small fw-bold text-shadow">0</span>
+                            <span class="small fw-bold text-shadow">{{ video.likeCount || 0 }}</span>
                         </div>
 
                         <!-- Comment -->
@@ -106,8 +113,11 @@ import { onMounted, ref, watch, nextTick } from 'vue';
 import { useVideoStore } from '@/stores/video';
 import CommentSheet from '@/components/comment/CommentSheet.vue';
 import { Offcanvas } from 'bootstrap';
+import { toggleLike } from '@/api/reaction';
+import { useToastStore } from '@/stores/toast';
 
 const videoStore = useVideoStore();
+const toastStore = useToastStore();
 const feedContainer = ref(null);
 const videoItems = ref([]);
 const activeIndex = ref(0);
@@ -244,8 +254,37 @@ watch(activeIndex, async () => {
     }
 });
 
-const handleLike = (videoId) => {
-    videoStore.toggleLike(videoId);
+const handleLike = async (video) => {
+    // 1. Optimistic Update (UI 즉시 반영)
+    const previousState = { liked: video.liked, count: video.likeCount };
+    
+    // Toggle state locally
+    video.liked = !video.liked;
+    video.likeCount = video.liked ? (video.likeCount || 0) + 1 : (video.likeCount || 0) - 1;
+    if (video.likeCount < 0) video.likeCount = 0;
+
+    // Trigger Animation
+    if (video.liked) {
+        video.isAnimating = true;
+        setTimeout(() => video.isAnimating = false, 300); // 300ms matches CSS animation
+    }
+
+    try {
+        // 2. Call API
+        const response = await toggleLike(video.videoId);
+        const data = response.data.data;
+
+        // 3. Sync with Server (Optional, but ensures accuracy)
+        video.liked = data.liked;
+        video.likeCount = data.likeCount;
+
+    } catch (error) {
+        console.error("Failed to toggle like", error);
+        // 4. Rollback on Error
+        video.liked = previousState.liked;
+        video.likeCount = previousState.count;
+        toastStore.addToast('좋아요 처리에 실패했습니다.', 'error');
+    }
 };
 
 const handleUpdateCount = ({ videoId, delta }) => {
@@ -350,6 +389,20 @@ const handleUpdateCount = ({ videoId, delta }) => {
 }
 
 .btn-icon:active {
-    transform: scale(0.8);
+    transform: scale(0.9);
+}
+
+@keyframes popHearth {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+}
+
+.animate-heart {
+    animation: popHearth 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.text-danger {
+    color: #fe2c55 !important;
 }
 </style>
