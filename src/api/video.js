@@ -41,3 +41,8 @@ export function updateComment(commentId, content) {
 export function deleteComment(commentId) {
     return api.delete(`/comment/${commentId}`);
 }
+
+// 내가 좋아요한 영상 목록 조회
+export function getMyLikedVideos(params) {
+    return api.get('/video/my-likes', { params });
+}

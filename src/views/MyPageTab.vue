@@ -78,12 +78,35 @@
             <button class="btn btn-sm btn-outline-secondary rounded-pill mt-2">퀴즈 풀러가기</button>
         </div>
 
-        <!-- Tab 2: Liked Videos (Mockup Grid) -->
-        <div v-if="activeTab === 'like'" class="row g-1 mt-0 fade-in">
-            <div class="col-4" v-for="n in 9" :key="n">
-                <div class="bg-secondary bg-opacity-10 ratio ratio-1x1 d-flex justify-content-center align-items-center video-placeholder">
-                    <span class="text-secondary small">Video {{ n }}</span>
-                    <i class="bi bi-heart-fill position-absolute bottom-0 end-0 m-2 text-white small drop-shadow"></i>
+        <!-- Tab 2: Liked Videos -->
+        <div v-if="activeTab === 'like'" class="fade-in">
+             <div v-if="loadingLikes" class="text-center py-5">
+                 <div class="spinner-border text-secondary" role="status"></div>
+             </div>
+             
+             <div v-else-if="likedVideos.length === 0" class="text-center py-5 text-secondary">
+                 <i class="bi bi-heart fs-1 mb-3 d-block opacity-50"></i>
+                 <p>좋아요 표시한 영상이 없습니다.</p>
+             </div>
+
+             <div v-else class="row g-1 mt-0">
+                <div class="col-4" v-for="video in likedVideos" :key="video.videoId">
+                    <!-- 3:4 Aspect Ratio for Shorts -->
+                    <div 
+                        @click="goToVideo(video.videoId)"
+                        class="bg-black ratio position-relative video-thumbnail border border-secondary border-opacity-10 rounded-1 overflow-hidden" 
+                        style="--bs-aspect-ratio: 133.33%;"
+                    >
+                        <img :src="video.thumbnailUrl" class="w-100 h-100 object-fit-cover" loading="lazy">
+                        
+                        <!-- Overlay Gradients -->
+                        <div class="position-absolute w-100 h-100 top-0 start-0" style="background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 40%);"></div>
+
+                        <i class="bi bi-heart-fill position-absolute bottom-0 end-0 m-2 text-accent small drop-shadow"></i>
+                        <span class="position-absolute bottom-0 start-0 m-1 ms-2 text-white x-small text-shadow fw-bold">
+                            <i class="bi bi-play-fill display-7"></i> {{ formatCount(video.viewCount) }}
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -100,20 +123,55 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
+import { getMyLikedVideos } from '@/api/video';
 
 const authStore = useAuthStore();
-const router = useRouter(); // Correct usage unlike template typo fix
-const activeTab = ref('like'); // Default to center tab (Liked)
+const router = useRouter(); 
+const activeTab = ref('like'); 
+const likedVideos = ref([]);
+const loadingLikes = ref(false);
 
 onMounted(async () => {
-    // 마이페이지 진입 시 최신 정보 갱신
     if (authStore.isAuthenticated) {
         await authStore.fetchUserInfo();
     }
+    // 초기 로드 (like 탭이 기본이므로)
+    if (activeTab.value === 'like') {
+        fetchLikedVideos();
+    }
 });
+
+watch(activeTab, (newTab) => {
+    if (newTab === 'like') {
+        fetchLikedVideos();
+    }
+});
+
+const fetchLikedVideos = async () => {
+    loadingLikes.value = true;
+    try {
+        const response = await getMyLikedVideos({ page: 1, size: 50 }); // 가져올 개수
+        likedVideos.value = response.data.data.videos;
+    } catch (error) {
+        console.error("Failed to fetch liked videos", error);
+    } finally {
+        loadingLikes.value = false;
+    }
+};
+
+const formatCount = (num) => {
+    if (!num) return '0';
+    if (num >= 10000) return (num / 10000).toFixed(1) + '만';
+    if (num >= 1000) return (num / 1000).toFixed(1) + '천';
+    return num;
+};
+
+const goToVideo = (videoId) => {
+    router.push({ path: '/', query: { videoId } });
+};
 
 const handleLogout = () => {
   if (confirm('로그아웃 하시겠습니까?')) {
@@ -155,19 +213,35 @@ const handleLogout = () => {
     cursor: pointer;
 }
 .tab-item.active {
-    color: var(--accent-color, #C0FF00); /* Fallback if var not set, but it is global */
+    color: var(--accent-color, #C0FF00); 
     border-bottom-color: var(--accent-color, #C0FF00);
 }
 .tab-item:hover {
     color: white;
 }
 
-.video-placeholder {
-    transition: transform 0.2s;
+.video-thumbnail {
     cursor: pointer;
+    transition: filter 0.2s;
 }
-.video-placeholder:hover {
-    filter: brightness(1.2);
+.video-thumbnail:active {
+    filter: brightness(0.8);
+}
+
+.text-accent {
+    color: var(--accent-color, #C0FF00);
+}
+
+.x-small {
+    font-size: 0.75rem;
+}
+
+.text-shadow {
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+
+.drop-shadow {
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
 }
 
 /* Animation */

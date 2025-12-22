@@ -97,14 +97,16 @@
 
 <script setup>
 import { onMounted, ref, watch, nextTick } from 'vue';
+import { useRoute } from 'vue-router';
 import { useVideoStore } from '@/stores/video';
 import CommentSheet from '@/components/comment/CommentSheet.vue';
 import { Offcanvas } from 'bootstrap';
-import { toggleLike } from '@/api/reaction';
+import { toggleLike, getVideoDetail } from '@/api/video';
 import { useToastStore } from '@/stores/toast';
 
 const videoStore = useVideoStore();
 const toastStore = useToastStore();
+const route = useRoute(); // Moved to top level
 const feedContainer = ref(null);
 const videoItems = ref([]);
 const activeIndex = ref(0);
@@ -126,7 +128,6 @@ const openCommentSheet = (videoId) => {
     }
 };
 
-// Extract ID logic
 const getYoutubeId = (url) => {
     if (!url) return '';
     // Added 'shorts/' to the regex
@@ -139,32 +140,65 @@ const getYoutubeId = (url) => {
 const getYoutubeEmbedUrl = (url, isPlaying) => {
     const id = getYoutubeId(url);
     if (!id) return '';
-    // controls=0: Hide controls
-    // autoplay=1: Autoplay if strict interaction allowed (muted helps)
-    // mute=1: Required for autoplay on most browsers
-    // loop=1: Loop
-    // playlist={id}: Required for loop to work
-    // rel=0: No related videos from other channels
-    // playsinline=1: iOS inline
     const playState = isPlaying ? '1' : '0';
     const origin = window.location.origin;
-    // Changed controls=0 to controls=1 to allow seeking
     return `https://www.youtube.com/embed/${id}?autoplay=${playState}&mute=1&controls=1&loop=1&playlist=${id}&rel=0&playsinline=1&enablejsapi=1&origin=${origin}&modestbranding=1`;
 };
 
-// Only render iframe if near active index to save resources (Lazy render)
 const shouldRender = (index) => {
     return Math.abs(activeIndex.value - index) <= 1; 
 };
 
 onMounted(async () => {
-    await videoStore.fetchVideos();
-    console.log('[DEBUG ShortsTab] Videos:', videoStore.videos);
+    // 1. Reset store to ensure clean state (Fixes navigation issues)
+    videoStore.resetVideos();
     
-    // Setup Intersection Observer for snapping/active detection
+    // 2. Fetch initial video list
+    await videoStore.fetchVideos();
+    
+    // 3. Check for navigation query (Direct Link)
+    // Route is now available from top scope
+    if (route.query.videoId) {
+        const targetId = parseInt(route.query.videoId);
+        const index = videoStore.videos.findIndex(v => v.videoId === targetId);
+        
+        if (index !== -1) {
+            // Found in initial list
+            activeIndex.value = index;
+            await nextTick();
+            const targetElement = videoItems.value[index];
+            if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'auto' });
+            }
+        } else {
+            // Not in initial list -> Fetch specific video
+            try {
+                const { data } = await getVideoDetail(targetId);
+                const videoData = data.data; 
+                if (videoData) {
+                    // Prepend successfully
+                    videoStore.videos.unshift(videoData);
+                    activeIndex.value = 0;
+                    await nextTick();
+                    if (feedContainer.value) feedContainer.value.scrollTop = 0;
+                }
+            } catch (e) {
+                console.error("Failed to fetch target video", e);
+                // Fallback: Just play first video
+                activeIndex.value = 0;
+            }
+        }
+    } else {
+        // Normal entry
+        activeIndex.value = 0;
+        await nextTick();
+        if (feedContainer.value) feedContainer.value.scrollTop = 0;
+    }
+
+    // 4. Setup Intersection Observer
     const options = {
         root: feedContainer.value,
-        threshold: 0.6 // Trigger when 60% visible
+        threshold: 0.6 
     };
 
     const observer = new IntersectionObserver((entries) => {
@@ -173,7 +207,6 @@ onMounted(async () => {
                 const index = parseInt(entry.target.getAttribute('data-index'));
                 activeIndex.value = index;
                 
-                // Infinite Scroll Trigger
                 if (index >= videoStore.videos.length - 2) {
                     videoStore.fetchVideos();
                 }
@@ -181,10 +214,9 @@ onMounted(async () => {
         });
     }, options);
 
-    // Watch for new items to observe
+    // 5. Watch for changes
     watch(() => videoStore.videos.length, async () => {
         await nextTick();
-        // Re-observe all? or just last ones. For simplicity re-observe new calls.
         if (videoItems.value) {
             videoItems.value.forEach(el => observer.observe(el));
         }
