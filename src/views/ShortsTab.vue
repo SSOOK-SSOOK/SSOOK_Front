@@ -33,29 +33,16 @@
                 <div class="d-flex align-items-end justify-content-between pb-5 mb-4">
                     <!-- Bottom Info: Add extra padding bottom to avoid overlapping with YouTube Controls if needed -->
                     <div class="text-start pointer-events-auto pb-4">
-                        <div class="mb-2">
-                             <span class="badge bg-secondary bg-opacity-50 text-white mb-1"><i class="bi bi-person-circle me-1"></i> SsookSsook</span>
-                        </div>
+
                         <h5 class="fw-bold mb-1 text-shadow">{{ video.title }}</h5>
                          <!-- <p class="small text-light text-shadow mb-0">#Shorts #Coding #Dev</p> -->
                     </div>
 
-                    <!-- Mute Toggle (Absolute Top Right) -->
-                    <div class="position-absolute top-0 end-0 p-3 mt-4 pointer-events-auto z-3">
-                        <button @click="toggleMute" class="btn btn-dark bg-opacity-50 rounded-circle text-white p-2">
-                            <i class="bi" :class="isMuted ? 'bi-volume-mute-fill' : 'bi-volume-up-fill'"></i>
-                        </button>
-                    </div>
+
 
                     <!-- Right Sidebar Actions -->
                     <div class="d-flex flex-column align-items-center gap-4 pointer-events-auto">
-                        <!-- Like Profile (Avatar) -->
-                        <div class="position-relative">
-                           <div class="avatar-circle border border-white">
-                                <i class="bi bi-person-fill fs-4"></i>
-                           </div>
-                           <div class="plus-badge"><i class="bi bi-plus text-white small"></i></div>
-                        </div>
+
 
                         <!-- Like -->
                         <div class="d-flex flex-column align-items-center">
@@ -204,55 +191,7 @@ onMounted(async () => {
     }, { immediate: true });
 });
 
-const isMuted = ref(true); // Default muted for autoplay
 
-const toggleMute = () => {
-    isMuted.value = !isMuted.value;
-    const command = isMuted.value ? 'mute' : 'unMute';
-    
-    // Send command to ALL iframes or just the active one?
-    // Best to send to active one.
-    const activeItem = videoItems.value[activeIndex.value];
-    if (activeItem) {
-        const iframe = activeItem.querySelector('iframe');
-        if (iframe) {
-            iframe.contentWindow.postMessage(JSON.stringify({
-                event: 'command',
-                func: command,
-                args: []
-            }), '*');
-        }
-    }
-};
-
-// Also sync mute state when changing videos? 
-// TikTok keeps mute state across videos. 
-// YouTube iframe resets state on reload. 
-// We need to apply current mute state when a new video beomes active.
-watch(activeIndex, async () => {
-    await nextTick();
-    // Apply current mute preference to new active video
-    const command = isMuted.value ? 'mute' : 'unMute';
-    const activeItem = videoItems.value[activeIndex.value];
-    if (activeItem) {
-        const iframe = activeItem.querySelector('iframe');
-        // Give iframe a moment to load? Iframe might not be ready. 
-        // YouTube API handles queuing but postMessage might be missed if too early.
-        // For simple iframe, we might just rely on user clicking again if it fails, 
-        // or set timeout. But let's try sending it.
-        if (iframe) {
-             // Send twice to be sure? Or wait for 'onReady' event (hard without full API).
-             // Simple approach: Send it.
-             setTimeout(() => {
-                iframe.contentWindow.postMessage(JSON.stringify({
-                    event: 'command',
-                    func: command,
-                    args: []
-                }), '*');
-             }, 500); // 500ms delay to allow player init
-        }
-    }
-});
 
 const handleLike = async (video) => {
     // 1. Optimistic Update (UI 즉시 반영)

@@ -8,25 +8,27 @@
 
     <div v-else-if="category" class="d-flex flex-column h-100">
         <!-- Header -->
-        <div class="header d-flex align-items-center p-3 sticky-top bg-black z-3">
-            <button @click="goBack" class="btn text-white p-0 me-3">
+        <div class="header d-flex align-items-center justify-content-between p-3 sticky-top glass-header z-3">
+            <button @click="goBack" class="btn btn-icon text-white p-0" aria-label="Go Back">
                 <i class="bi bi-chevron-left fs-4"></i>
             </button>
-            <h1 class="fs-5 fw-bold m-0 flex-grow-1 text-center pe-4">{{ category.name }}</h1>
-             <button class="btn text-white p-0">
+            <h1 class="fs-5 fw-bold m-0 text-center font-primary text-truncate px-2">{{ category.name }}</h1>
+             <button class="btn btn-icon text-white p-0" aria-label="More Options">
                 <i class="bi bi-three-dots-vertical fs-5"></i>
             </button>
         </div>
 
         <!-- Banner / Info -->
         <div class="text-center p-4">
-             <div class="d-inline-block rounded-circle overflow-hidden mb-3 border border-secondary" style="width: 80px; height: 80px;">
-                <img v-if="category.imageUrl" :src="category.imageUrl" class="w-100 h-100 object-fit-cover" alt="">
-                <div v-else class="w-100 h-100 bg-secondary d-flex justify-content-center align-items-center">
-                    <i class="bi bi-hash fs-1 text-white opacity-50"></i>
-                </div>
+             <div class="d-inline-block rounded-circle overflow-hidden mb-3 gradient-border p-1" style="width: 84px; height: 84px;">
+                 <div class="w-100 h-100 rounded-circle overflow-hidden bg-black">
+                    <img v-if="category.imageUrl" :src="category.imageUrl" class="w-100 h-100 object-fit-cover" alt="">
+                    <div v-else class="w-100 h-100 d-flex justify-content-center align-items-center bg-secondary">
+                        <i class="bi bi-hash fs-1 text-white opacity-50"></i>
+                    </div>
+                 </div>
             </div>
-            <h2 class="fw-bold fs-3 mb-2">{{ category.name }}</h2>
+            <h2 class="fw-bold fs-3 mb-2 font-primary">{{ category.name }}</h2>
             <p class="text-secondary small px-4">{{ category.description }}</p>
         </div>
 
@@ -36,9 +38,9 @@
             <!-- CASE 1: Parent Category (Show Children) -->
             <div v-if="category.hasChildren && category.children && category.children.length > 0">
                 <div class="d-flex flex-column gap-2 mt-4">
-                     <div v-for="child in category.children" :key="child.categoryId" class="d-flex align-items-center bg-dark rounded p-3" @click="goToDetail(child.categoryId)">
+                     <div v-for="child in category.children" :key="child.categoryId" class="child-category-card d-flex align-items-center p-3" @click="goToDetail(child.categoryId)">
                         <!-- Thumbnail -->
-                        <div class="rounded bg-secondary overflow-hidden flex-shrink-0 me-3" style="width: 48px; height: 48px;">
+                        <div class="rounded-circle overflow-hidden flex-shrink-0 me-3 bg-secondary" style="width: 48px; height: 48px;">
                             <img v-if="child.imageUrl" :src="child.imageUrl" alt="" class="w-100 h-100 object-fit-cover">
                             <div v-else class="w-100 h-100 bg-light bg-opacity-10 d-flex justify-content-center align-items-center">
                                 <i class="bi bi-hash fs-4 text-secondary"></i>
@@ -62,7 +64,7 @@
                     class="btn w-100 rounded-pill fw-bold py-2 mb-4 fs-5 transition-all"
                     :class="category.isSubscribed ? 'btn-outline-secondary' : 'btn-neon'"
                 >
-                    {{ category.isSubscribed ? '구독중' : '구독' }}
+                    {{ category.isSubscribed ? '구독중' : '구독하기' }}
                 </button>
 
                 <!-- Videos Grid -->
@@ -75,7 +77,7 @@
                 </div>
                 <div v-else class="row g-2">
                     <div v-for="video in videos" :key="video.videoId" class="col-4">
-                        <div class="ratio ratio-9x16 bg-secondary rounded overflow-hidden position-relative">
+                        <div class="ratio ratio-9x16 bg-secondary rounded overflow-hidden position-relative video-card">
                              <img v-if="video.thumbnailUrl" :src="video.thumbnailUrl" class="w-100 h-100 object-fit-cover" alt="">
                              <div class="position-absolute bottom-0 start-0 w-100 p-1 text-white bg-gradient-overlay">
                                 <div class="x-small d-flex align-items-center">
@@ -94,6 +96,7 @@
         <div class="text-center">
             <i class="bi bi-exclamation-triangle fs-1 mb-3"></i>
             <p>{{ errorMessage || '카테고리 정보를 불러올 수 없습니다.' }}</p>
+             <button @click="goBack" class="btn btn-outline-light mt-3">뒤로가기</button>
         </div>
     </div>
   </div>
@@ -154,7 +157,12 @@ watch(
 );
 
 const goBack = () => {
-    router.back();
+    // If no history, maybe go home?
+    if (window.history.length > 2) {
+        router.back();
+    } else {
+        router.push('/category');
+    }
 };
 
 const goToDetail = (id) => {
@@ -181,13 +189,26 @@ const formatCount = (count) => {
 .page-container {
     min-height: 100vh;
 }
+
+.glass-header {
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.font-primary {
+    font-family: 'Pretendard', sans-serif;
+    letter-spacing: -0.5px;
+}
+
 .btn-neon {
     background-color: var(--accent-color);
-    color: white;
+    color: #000;
+    font-weight: 700;
     border: none;
 }
 .btn-neon:hover {
-    background-color: #e0244a; 
+    background-color: #b0e600; 
 }
 .btn-outline-secondary {
     color: #ccc;
@@ -205,5 +226,21 @@ const formatCount = (count) => {
 }
 .x-small {
     font-size: 0.7rem;
+}
+
+/* New Card Styles */
+.child-category-card {
+    background: rgba(20, 20, 20, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+.child-category-card:hover {
+    background: rgba(30, 30, 30, 0.8);
+    transform: translateX(4px);
+}
+
+.gradient-border {
+    background: linear-gradient(45deg, var(--accent-color), #333);
 }
 </style>

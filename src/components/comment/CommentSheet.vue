@@ -1,46 +1,57 @@
 <template>
   <div 
-    class="offcanvas offcanvas-bottom bg-dark text-white mx-auto" 
+    class="offcanvas offcanvas-bottom mx-auto comment-sheet" 
     tabindex="-1" 
     id="commentOffcanvas" 
     ref="offcanvasRef"
     aria-labelledby="commentOffcanvasLabel"
-    style="height: 70vh; border-top-left-radius: 16px; border-top-right-radius: 16px; max-width: 720px;"
+    data-bs-scroll="true"
+    data-bs-backdrop="false"
   >
+    <!-- Glass Backdrop Layer (Manual implementation if bs-backdrop is false, or rely on CSS) -->
+    
     <!-- Header -->
-    <div class="offcanvas-header border-bottom border-secondary">
-      <h5 class="offcanvas-title fs-6 fw-bold mx-auto" id="commentOffcanvasLabel">
-        댓글
-      </h5>
-      <button 
-        type="button" 
-        class="btn-close btn-close-white position-absolute end-0 me-3" 
-        data-bs-dismiss="offcanvas" 
-        aria-label="Close"
-      ></button>
+    <div class="offcanvas-header pt-3 pb-2 sticky-top glass-header z-3">
+      <div class="w-100 text-center position-relative">
+          <div class="drag-handle mx-auto mb-3"></div>
+          <h5 class="offcanvas-title fs-6 fw-bold font-primary mb-1" id="commentOffcanvasLabel">
+            댓글
+          </h5>
+          <button 
+            type="button" 
+            class="btn-close btn-close-white position-absolute top-50 end-0 translate-middle-y me-2" 
+            data-bs-dismiss="offcanvas" 
+            aria-label="Close"
+          ></button>
+      </div>
     </div>
 
     <!-- Body (List) -->
-    <div class="offcanvas-body p-0 custom-scrollbar" ref="commentListRef">
-        <!-- Skeleton Loading (Initial) -->
-        <div v-if="loading && comments.length === 0" class="p-3">
+    <div class="offcanvas-body p-0 custom-scrollbar position-relative" ref="commentListRef">
+        <!-- Skeleton Loading -->
+        <div v-if="loading && comments.length === 0" class="p-3 mt-2">
              <SkeletonLoader :count="5" />
         </div>
 
         <!-- Empty State -->
-        <div v-else-if="comments.length === 0" class="text-center py-5 text-secondary small">
-            <p>아직 댓글이 없습니다.<br>첫 번째 댓글을 남겨보세요!</p>
+        <div v-else-if="comments.length === 0" class="text-center py-5 mt-5">
+            <div class="empty-icon mx-auto mb-3">
+                <i class="bi bi-chat-square-text text-secondary opacity-25" style="font-size: 3rem;"></i>
+            </div>
+            <p class="text-secondary small fw-light">아직 댓글이 없습니다.<br>첫 번째 대화를 시작해보세요!</p>
         </div>
 
         <!-- Comment List -->
-        <ul v-else class="list-group list-group-flush">
+        <ul v-else class="list-group list-group-flush pb-5">
             <template v-for="comment in comments" :key="comment.commentId">
                 <!-- Parent Comment -->
-                <li class="list-group-item bg-dark text-white border-0 d-flex gap-3 align-items-start py-3">
+                <li class="list-group-item bg-transparent border-0 d-flex gap-3 align-items-start py-3 animate-fade-in">
                     <!-- Avatar -->
                     <div class="flex-shrink-0">
-                        <div class="avatar-circle bg-secondary">
-                            <i class="bi bi-person-fill text-white-50"></i>
+                        <!-- If user has image, show it. Else placeholder -->
+                        <div class="avatar-circle gradient-border">
+                            <img v-if="comment.profileImage" :src="comment.profileImage" alt="Profile" class="w-100 h-100 rounded-circle object-fit-cover">
+                            <span v-else class="initials">{{ comment.nickname.charAt(0) }}</span>
                         </div>
                     </div>
 
@@ -49,36 +60,10 @@
                         <!-- Header Line: Nickname + Actions -->
                         <div class="d-flex justify-content-between align-items-start mb-1">
                             <div class="d-flex align-items-center gap-2">
-                                <span class="fw-bold small text-light">{{ comment.nickname }}</span>
-                                <span v-if="isEdited(comment)" class="text-secondary" style="font-size: 0.7rem;">(수정됨)</span>
-                            </div>
-                            <div class="d-flex gap-2">
-                                <!-- Reply Button (Always visible unless editing self) -->
-                                <button 
-                                    v-if="editingCommentId !== comment.commentId"
-                                    @click="startReply(comment)"
-                                    class="btn btn-link text-secondary p-0"
-                                    style="font-size: 0.8rem; text-decoration: none;"
-                                >
-                                    답글
-                                </button>
-                                <!-- Owner Actions -->
-                                <template v-if="isOwner(comment) && editingCommentId !== comment.commentId">
-                                    <button 
-                                        @click="startEdit(comment)" 
-                                        class="btn btn-link text-secondary p-0"
-                                        style="font-size: 0.8rem; text-decoration: none;"
-                                    >
-                                        수정
-                                    </button>
-                                    <button 
-                                        @click="handlenrDelete(comment)" 
-                                        class="btn btn-link text-secondary p-0"
-                                        style="font-size: 0.8rem;"
-                                    >
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </template>
+                                <span class="fw-bold small text-white">{{ comment.nickname }}</span>
+                                <span v-if="isOwner(comment)" class="badge bg-secondary bg-opacity-25 text-secondary x-small py-0 px-1">나</span>
+                                <span class="text-secondary x-small">{{ formatTime(comment.createdAt) }}</span>
+                                <span v-if="isEdited(comment)" class="text-secondary x-small">(수정됨)</span>
                             </div>
                         </div>
 
@@ -86,53 +71,56 @@
                         <div v-if="editingCommentId === comment.commentId" class="mb-2">
                             <textarea 
                                 v-model="editingContent" 
-                                class="form-control bg-secondary bg-opacity-10 text-white border-secondary mb-2" 
+                                class="form-control bg-dark text-white border-secondary mb-2" 
                                 rows="2"
                             ></textarea>
                             <div class="d-flex justify-content-end gap-2">
                                 <button @click="cancelEdit" class="btn btn-sm btn-outline-secondary">취소</button>
-                                <button @click="handleUpdate(comment.commentId)" class="btn btn-sm btn-primary">저장</button>
+                                <button @click="handleUpdate(comment.commentId)" class="btn btn-sm btn-accent text-black fw-bold">완료</button>
                             </div>
                         </div>
 
                         <!-- View Mode -->
                         <template v-else>
-                            <p class="mb-1 small text-white text-break">{{ comment.content }}</p>
-                            <span class="text-secondary" style="font-size: 0.7rem;">{{ formatTime(comment.createdAt) }}</span>
+                            <p class="mb-2 small text-light text-break fw-light lh-base">{{ comment.content }}</p>
+                            
+                            <!-- Action Bar -->
+                            <div class="d-flex gap-3 align-items-center">
+                                <button 
+                                    v-if="editingCommentId !== comment.commentId"
+                                    @click="startReply(comment)"
+                                    class="btn-action text-secondary"
+                                >
+                                    답글달기
+                                </button>
+                                
+                                <template v-if="isOwner(comment) && editingCommentId !== comment.commentId">
+                                    <button @click="startEdit(comment)" class="btn-action text-secondary">수정</button>
+                                    <button @click="handlenrDelete(comment)" class="btn-action text-secondary">삭제</button>
+                                </template>
+                            </div>
                         </template>
                         
                         <!-- Replies List (Nested) -->
-                        <div v-if="comment.replies && comment.replies.length > 0" class="mt-2 text-start">
+                        <div v-if="comment.replies && comment.replies.length > 0" class="mt-3 ps-2 border-start border-secondary border-opacity-25">
                             <div 
                                 v-for="reply in comment.replies" 
                                 :key="reply.commentId" 
-                                class="d-flex gap-2 mt-2"
+                                class="d-flex gap-2 mt-3"
                             >
-                                <div class="avatar-circle-sm bg-secondary flex-shrink-0">
-                                    <i class="bi bi-person-fill text-white-50" style="font-size: 0.7rem;"></i>
+                                <div class="avatar-circle-sm flex-shrink-0 bg-dark text-secondary position-relative">
+                                    <template v-if="reply.profileImage">
+                                         <img :src="reply.profileImage" class="w-100 h-100 rounded-circle object-fit-cover">
+                                         <!-- Small arrow overlay or separate? Keeping it simple for now, just avatar -->
+                                    </template>
+                                    <i v-else class="bi bi-arrow-return-right"></i>
                                 </div>
                                 <div class="flex-grow-1 w-100">
-                                     <div class="d-flex justify-content-between align-items-start">
+                                     <div class="d-flex justify-content-between align-items-start mb-1">
                                         <div class="d-flex align-items-center gap-2">
-                                            <span class="fw-bold text-light" style="font-size: 0.8rem;">{{ reply.nickname }}</span>
-                                            <span v-if="isEdited(reply)" class="text-secondary" style="font-size: 0.65rem;">(수정됨)</span>
-                                        </div>
-                                         <!-- Owner Actions (Reply) -->
-                                        <div class="d-flex gap-2" v-if="isOwner(reply) && editingCommentId !== reply.commentId">
-                                            <button 
-                                                @click="startEdit(reply)" 
-                                                class="btn btn-link text-secondary p-0"
-                                                style="font-size: 0.7rem; text-decoration: none;"
-                                            >
-                                                수정
-                                            </button>
-                                            <button 
-                                                @click="handlenrDelete(reply, comment.commentId)" 
-                                                class="btn btn-link text-secondary p-0"
-                                                style="font-size: 0.7rem;"
-                                            >
-                                                <i class="bi bi-trash"></i>
-                                            </button>
+                                            <span class="fw-bold text-white small">{{ reply.nickname }}</span>
+                                            <span v-if="isOwner(reply)" class="badge bg-secondary bg-opacity-25 text-secondary x-small py-0 px-1">나</span>
+                                            <span class="text-secondary x-small">{{ formatTime(reply.createdAt) }}</span>
                                         </div>
                                      </div>
 
@@ -140,20 +128,24 @@
                                     <div v-if="editingCommentId === reply.commentId" class="mt-1">
                                         <textarea 
                                             v-model="editingContent" 
-                                            class="form-control bg-secondary bg-opacity-10 text-white border-secondary mb-2" 
+                                            class="form-control bg-dark text-white border-secondary mb-2" 
                                             rows="2"
-                                            style="font-size: 0.8rem;"
                                         ></textarea>
                                         <div class="d-flex justify-content-end gap-2">
-                                            <button @click="cancelEdit" class="btn btn-sm btn-outline-secondary" style="font-size: 0.7rem;">취소</button>
-                                            <button @click="handleUpdate(reply.commentId, comment.commentId)" class="btn btn-sm btn-primary" style="font-size: 0.7rem;">저장</button>
+                                            <button @click="cancelEdit" class="btn btn-sm btn-outline-secondary">취소</button>
+                                            <button @click="handleUpdate(reply.commentId, comment.commentId)" class="btn btn-sm btn-accent text-black fw-bold">완료</button>
                                         </div>
                                     </div>
                                     
                                     <!-- View Mode (Reply) -->
                                     <template v-else>
-                                        <p class="mb-0 small text-white-50 text-break">{{ reply.content }}</p>
-                                        <span class="text-secondary" style="font-size: 0.65rem;">{{ formatTime(reply.createdAt) }}</span>
+                                        <p class="mb-1 small text-white-50 text-break fw-light lh-base">{{ reply.content }}</p>
+                                        <div class="d-flex gap-3">
+                                            <template v-if="isOwner(reply) && editingCommentId !== reply.commentId">
+                                                <button @click="startEdit(reply)" class="btn-action x-small text-secondary">수정</button>
+                                                <button @click="handlenrDelete(reply, comment.commentId)" class="btn-action x-small text-secondary">삭제</button>
+                                            </template>
+                                        </div>
                                     </template>
                                 </div>
                             </div>
@@ -165,34 +157,35 @@
         
         <!-- Infinite Scroll Sentinel -->
         <div ref="sentinelRef" class="py-3 text-center" style="min-height: 20px;">
-             <!-- Using Skeleton for pagination loading too, or just spinner -->
              <div v-if="loadingMore" class="spinner-border spinner-border-sm text-secondary" role="status"></div>
         </div>
+        
+        <!-- Bottom Spacer for Input -->
+        <div style="height: 80px;"></div>
     </div>
 
     <!-- Footer (Input) -->
-    <div class="offcanvas-footer p-3 border-top border-secondary bg-dark" style="position: sticky; bottom: 0;">
-        <div v-if="replyingTo" class="d-flex justify-content-between align-items-center mb-2 px-1">
-            <span class="small text-secondary">
-                <span class="text-primary">@{{ replyingTo.nickname }}</span>님에게 답글 남기는 중
+    <div class="input-area p-3 bg-black border-top border-secondary border-opacity-10">
+        <div v-if="replyingTo" class="d-flex justify-content-between align-items-center mb-2 px-2 reply-indicator">
+            <span class="x-small text-secondary">
+                <span class="text-accent fw-bold">@{{ replyingTo.nickname }}</span>에게 답글 작성 중
             </span>
-            <button @click="cancelReply" class="btn btn-sm btn-close btn-close-white"></button>
+            <button @click="cancelReply" class="btn btn-sm btn-close btn-close-white scale-75"></button>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 position-relative">
             <input 
                 v-model="newComment" 
                 @keyup.enter="handleCreate"
                 type="text" 
-                class="form-control bg-secondary bg-opacity-25 text-white border-0 rounded-pill" 
-                :placeholder="replyingTo ? '답글 추가...' : '댓글 추가...'"
+                class="form-control modern-input ps-4" 
+                :placeholder="replyingTo ? '따뜻한 답글을 남겨주세요...' : '댓글을 입력하세요...'"
             >
             <button 
                 @click="handleCreate" 
-                class="btn rounded-circle btn-primary d-flex align-items-center justify-content-center" 
-                style="width: 38px; height: 38px; background-color: var(--accent-color); border: none;"
+                class="btn btn-accent btn-send d-flex align-items-center justify-content-center" 
                 :disabled="!newComment.trim()"
             >
-                <i class="bi bi-arrow-up-short fs-4 text-white"></i>
+                <i class="bi bi-arrow-up-short fs-4"></i>
             </button>
         </div>
     </div>
@@ -201,7 +194,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import { getCommentList, createComment, createReply, deleteComment, updateComment } from '@/api/comment';
+import { getComments as getCommentList, createComment, createReply, deleteComment, updateComment } from '@/api/video';
 import { useAuthStore } from '@/stores/auth';
 import { useToastStore } from '@/stores/toast';
 import { useDialogStore } from '@/stores/dialog';
@@ -476,12 +469,138 @@ defineExpose({
 </script>
 
 <style scoped>
-.avatar-circle-sm {
-    width: 24px;
-    height: 24px;
+.comment-sheet {
+    height: 75vh !important;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    max-width: 720px;
+    background-color: rgba(20, 20, 20, 0.95); /* Semi-transparent black */
+    backdrop-filter: blur(10px); /* Glassmorphism */
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.glass-header {
+    background: rgba(20, 20, 20, 0.8);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.drag-handle {
+    width: 40px;
+    height: 4px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+}
+
+.text-accent {
+    color: var(--accent-color);
+}
+
+.btn-accent {
+    background-color: var(--accent-color);
+    border: none;
+    transition: transform 0.2s;
+}
+.btn-accent:active {
+    transform: scale(0.95);
+}
+
+.avatar-circle {
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
+    background-color: #333;
     display: flex;
     justify-content: center;
     align-items: center;
+    font-weight: bold;
+    color: white;
+    font-size: 0.9rem;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Gradient border for sophisticated look */
+.gradient-border {
+    background: linear-gradient(#121212, #121212) padding-box,
+                linear-gradient(45deg, var(--accent-color), #333) border-box;
+    border: 1px solid transparent;
+}
+
+.avatar-circle-sm {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modern-input {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 25px;
+    color: white;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    transition: all 0.3s;
+}
+.modern-input:focus {
+    background-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 1px var(--accent-color);
+    color: white;
+}
+.modern-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.9rem;
+    font-weight: 300;
+}
+
+.btn-send {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.btn-send:disabled {
+    background-color: #333;
+    color: #555;
+    opacity: 0.5;
+}
+
+.btn-action {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 0.75rem;
+    cursor: pointer;
+    font-weight: 500;
+}
+.btn-action:hover {
+    text-decoration: underline;
+    color: white !important;
+}
+
+.x-small {
+    font-size: 0.7rem;
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
 }
 </style>

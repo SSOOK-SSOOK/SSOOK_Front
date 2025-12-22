@@ -1,7 +1,7 @@
 <template>
   <div class="login-container d-flex flex-column justify-content-center align-items-center text-white">
     <div class="logo mb-5">
-      <h1 class="fw-bold neon-text">SSOOK</h1>
+      <h1 class="fw-bold neon-text">쑥쑥</h1>
       <p class="text-secondary small">숏폼 학습 플랫폼</p>
     </div>
 
@@ -27,7 +27,7 @@
         >
       </div>
 
-      <button type="submit" class="btn btn-primary w-100 py-3 fw-bold neon-btn mb-3">
+      <button type="submit" class="btn btn-primary w-100 py-3 fw-bold neon-btn mb-3 text-black">
         로그인
       </button>
       
@@ -69,7 +69,7 @@ const handleLogin = async () => {
 
 .neon-text {
   color: #fff;
-  text-shadow: 0 0 10px rgba(254, 44, 85, 0.7), 0 0 20px rgba(254, 44, 85, 0.5);
+  text-shadow: 0 0 10px rgba(192, 255, 0, 0.7), 0 0 20px rgba(192, 255, 0, 0.5);
   font-size: 3rem;
   letter-spacing: -1px;
 }
@@ -77,13 +77,13 @@ const handleLogin = async () => {
 .neon-btn {
   background-color: var(--accent-color);
   border: none;
-  box-shadow: 0 0 15px rgba(254, 44, 85, 0.4);
+  box-shadow: 0 0 15px rgba(192, 255, 0, 0.4);
   transition: all 0.3s ease;
 }
 
 .neon-btn:hover {
-  background-color: #e0244a;
-  box-shadow: 0 0 25px rgba(254, 44, 85, 0.6);
+  background-color: #aed900;
+  box-shadow: 0 0 25px rgba(192, 255, 0, 0.6);
   transform: translateY(-2px);
 }
 </style>
