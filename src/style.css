@@ -1,14 +1,18 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+
 :root {
   --bg-color: #121212;
   --text-color: #ffffff;
-  --accent-color: #FE2C55; /* TikTok Red */
+  --accent-color: #C0FF00;
+  /* Neon Lime Green */
   --nav-bg: #000000;
 }
 
 body {
-  background-color: #000000; /* Outer background for PC */
+  background-color: #000000;
+  /* Outer background for PC */
   color: var(--text-color);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   margin: 0;
   padding: 0;
