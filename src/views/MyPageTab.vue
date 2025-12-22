@@ -9,11 +9,15 @@
     <!-- 프로필 섹션 -->
     <div class="profile-section text-center mt-4">
       <div class="avatar-container mb-3 position-relative d-inline-block">
-        <div class="avatar rounded-circle bg-secondary d-flex justify-content-center align-items-center">
-             <i class="bi bi-person-fill text-white" style="font-size: 3rem;"></i>
-        </div>
-        <div class="add-icon bg-primary text-white rounded-circle position-absolute bottom-0 end-0 d-flex justify-content-center align-items-center">
-            <i class="bi bi-plus"></i>
+        <div class="avatar rounded-circle bg-secondary d-flex justify-content-center align-items-center overflow-hidden">
+             <!-- 프로필 이미지가 있으면 이미지 표시, 없으면 기본 아이콘(또는 기본 이미지) -->
+             <img 
+                v-if="authStore.user?.profileImage" 
+                :src="authStore.user.profileImage" 
+                alt="Profile" 
+                class="w-100 h-100 object-fit-cover"
+             >
+             <i v-else class="bi bi-person-fill text-white" style="font-size: 3rem;"></i>
         </div>
       </div>
       

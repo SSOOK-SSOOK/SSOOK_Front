@@ -15,3 +15,8 @@ export function updateMyInfo(data) {
 export function withdraw(userId) {
     return api.delete(`/users/${userId}`);
 }
+
+// 프로필 이미지 목록 조회
+export function getProfileImages() {
+    return api.get('/users/profile-images');
+}

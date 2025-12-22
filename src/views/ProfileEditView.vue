@@ -13,14 +13,27 @@
 
     <!-- Edit Form -->
     <div class="p-4">
-        <!-- Avatar Change Placeholder -->
-        <div class="text-center mb-5">
-            <div class="position-relative d-inline-block">
-                <div class="avatar rounded-circle bg-secondary d-flex justify-content-center align-items-center opacity-75">
-                    <i class="bi bi-camera-fill text-white fs-3"></i>
+        <!-- Profile Image Selection -->
+        <div class="mb-5">
+            <p class="text-secondary small mb-3">프로필 이미지 선택</p>
+            <div class="row g-3 justify-content-center">
+                <div 
+                    v-for="(img, index) in profileImages" 
+                    :key="index"
+                    class="col-4 position-relative cursor-pointer text-center"
+                    @click="selectImage(img)"
+                >
+                    <img 
+                        :src="img" 
+                        class="avatar rounded opacity-75 object-fit-cover" 
+                        :class="{ 'border border-2 border-danger opacity-100': form.profileImage === img }"
+                        alt="Profile Option"
+                    >
+                    <div v-if="form.profileImage === img" class="position-absolute top-0 end-0 p-1 me-2">
+                        <i class="bi bi-check-circle-fill text-danger bg-white rounded-circle" style="font-size: 0.8rem;"></i>
+                    </div>
                 </div>
             </div>
-            <p class="text-secondary small mt-2">사진 변경</p>
         </div>
 
         <div class="mb-4">
@@ -57,30 +70,52 @@
 import { ref, onMounted, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
-import { updateMyInfo, withdraw } from '@/api/user';
+import { useToastStore } from '@/stores/toast';
+import { useDialogStore } from '@/stores/dialog';
+import { updateMyInfo, withdraw, getProfileImages } from '@/api/user';
 
 const router = useRouter();
 const authStore = useAuthStore();
+const toastStore = useToastStore();
+const dialogStore = useDialogStore();
 const isLoading = ref(false);
+const profileImages = ref([]);
 
 const form = reactive({
     nickname: '',
-    intro: ''
+    intro: '',
+    profileImage: ''
 });
 
 onMounted(async () => {
+    // 1. 내 정보 가져오기
     if (!authStore.user) {
         await authStore.fetchUserInfo();
     }
     if (authStore.user) {
         form.nickname = authStore.user.nickname;
         form.intro = authStore.user.intro;
+        // 이미지가 없으면 기본값 (profile9.png) 설정
+        form.profileImage = authStore.user.profileImage || '/images/profile9.png';
+    }
+
+    // 2. 프로필 이미지 목록 가져오기
+    try {
+        const response = await getProfileImages();
+        // API response structure: { status: "SUCCESS", message: "...", data: [...] }
+        profileImages.value = response.data.data;
+    } catch (error) {
+        console.error("Failed to fetch profile images:", error);
     }
 });
 
+const selectImage = (img) => {
+    form.profileImage = img;
+};
+
 const handleSave = async () => {
     if (!form.nickname.trim()) {
-        alert('닉네임을 입력해주세요.');
+        toastStore.addToast('닉네임을 입력해주세요.', 'warning');
         return;
     }
 
@@ -88,39 +123,52 @@ const handleSave = async () => {
         isLoading.value = true;
         await updateMyInfo({
             nickname: form.nickname,
-            intro: form.intro
+            intro: form.intro,
+            profileImage: form.profileImage
         });
         
         // Update Store
         await authStore.fetchUserInfo();
         
-        alert('저장되었습니다.');
+        toastStore.addToast('저장되었습니다.', 'success');
         router.push('/mypage');
     } catch (error) {
         console.error(error);
-        alert('저장에 실패했습니다.');
+        toastStore.addToast('저장에 실패했습니다.', 'error');
     } finally {
         isLoading.value = false;
     }
 };
 
 const handleWithdraw = async () => {
-    if (!confirm('정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+    const confirmed = await dialogStore.showConfirm(
+        '회원 탈퇴', 
+        '정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.'
+    );
+    
+    if (!confirmed) return;
 
     try {
         await withdraw(authStore.user.userId);
-        alert('탈퇴 처리가 완료되었습니다.');
+        toastStore.addToast('탈퇴 처리가 완료되었습니다.', 'info');
         authStore.logout();
     } catch (error) {
         console.error(error);
-        alert('회원 탈퇴에 실패했습니다.');
+        toastStore.addToast('회원 탈퇴에 실패했습니다.', 'error');
     }
 };
 </script>
 
 <style scoped>
 .avatar {
-    width: 96px;
-    height: 96px;
+    width: 80px;
+    height: 80px;
+    transition: all 0.2s;
+}
+.cursor-pointer {
+    cursor: pointer;
+}
+.object-fit-cover {
+    object-fit: cover;
 }
 </style>
