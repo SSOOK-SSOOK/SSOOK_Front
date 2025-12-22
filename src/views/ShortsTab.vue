@@ -83,7 +83,7 @@
 
                         <!-- Share -->
                         <div class="d-flex flex-column align-items-center">
-                             <button class="btn btn-icon text-white p-0">
+                             <button @click="handleShare(video)" class="btn btn-icon text-white p-0">
                                 <i class="bi bi-share-fill fs-1 shadow-icon"></i>
                             </button>
                             <span class="small fw-bold text-shadow">공유</span>
@@ -296,6 +296,26 @@ const handleUpdateCount = ({ videoId, delta }) => {
         }
         video.commentCount += delta;
         if (video.commentCount < 0) video.commentCount = 0;
+    }
+};
+
+const handleShare = async (video) => {
+    try {
+        const id = getYoutubeId(video.videoUrl);
+        if (!id) {
+            toastStore.addToast('공유할 수 없는 영상입니다.', 'error');
+            return;
+        }
+
+        const shortsUrl = `https://www.youtube.com/shorts/${id}`;
+        
+        // Clipboard API requires secure context (HTTPS) or localhost
+        await navigator.clipboard.writeText(shortsUrl);
+        
+        toastStore.addToast('링크가 클립보드에 복사되었습니다.', 'success');
+    } catch (error) {
+        console.error('Share failed:', error);
+        toastStore.addToast('클립보드 복사에 실패했습니다.', 'error');
     }
 };
 </script>
