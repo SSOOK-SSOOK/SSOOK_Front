@@ -1,10 +1,11 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { getCategories } from '@/api/category';
+import { getCategories, getCategoryDetail } from '@/api/category';
 import { subscribe, unsubscribe } from '@/api/subscription';
 
 export const useCategoryStore = defineStore('category', () => {
     const categories = ref([]);
+    const currentCategory = ref(null);
     const loading = ref(false);
 
     // Group categories by parentId
@@ -24,10 +25,27 @@ export const useCategoryStore = defineStore('category', () => {
         return categories.value.filter(c => c.isSubscribed);
     });
 
-    const fetchCategories = async () => {
+    const fetchCategory = async (categoryId) => {
         loading.value = true;
         try {
-            const response = await getCategories({ page: 1, perPage: 100 }); // Fetch enough
+            const response = await getCategoryDetail(categoryId);
+            currentCategory.value = response.data.data;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        } finally {
+            loading.value = false;
+        }
+    };
+
+    const fetchCategories = async (keyword = '') => {
+        loading.value = true;
+        try {
+            const params = { page: 1, perPage: 100 };
+            if (keyword) {
+                params.keyword = keyword;
+            }
+            const response = await getCategories(params); // Fetch enough
             // API Response: { status, message, data: { content: [], ... } } or just list?
             // PageResponse usually has 'content' or 'list'. Checking PageResponse.java might be needed but assuming 'content' based on typical Spring Page.
             // Wait, previous API calls showed keys like 'data' in Axios response. 
@@ -80,10 +98,12 @@ export const useCategoryStore = defineStore('category', () => {
 
     return {
         categories,
+        currentCategory,
         loading,
         groupedCategories,
         subscribedCategories,
         fetchCategories,
+        fetchCategory,
         toggleSubscription
     };
 });

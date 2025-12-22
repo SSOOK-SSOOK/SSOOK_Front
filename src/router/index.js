@@ -20,6 +20,11 @@ const routes = [
         meta: { requiresAuth: true }
     },
     {
+        path: '/category/:id',
+        component: () => import('../views/CategoryDetailView.vue'),
+        meta: { requiresAuth: true }
+    },
+    {
         path: '/subscribe',
         component: SubscribeTab,
         meta: { requiresAuth: true }
