@@ -1,15 +1,15 @@
 <template>
-  <div 
-    class="offcanvas offcanvas-bottom mx-auto comment-sheet" 
-    tabindex="-1" 
-    id="commentOffcanvas" 
-    ref="offcanvasRef"
+<Teleport to="body">
+  <div
+    class="offcanvas offcanvas-bottom comment-sheet"
+    tabindex="-1"
+    id="commentOffcanvas"
     aria-labelledby="commentOffcanvasLabel"
     data-bs-scroll="true"
     data-bs-backdrop="false"
   >
     <!-- Glass Backdrop Layer (Manual implementation if bs-backdrop is false, or rely on CSS) -->
-    
+
     <!-- Header -->
     <div class="offcanvas-header pt-3 pb-2 sticky-top glass-header z-3">
       <div class="w-100 text-center position-relative">
@@ -27,7 +27,7 @@
     </div>
 
     <!-- Body (List) -->
-    <div class="offcanvas-body p-0 custom-scrollbar position-relative" ref="commentListRef">
+    <div class="offcanvas-body p-0 custom-scrollbar position-relative flex-grow-1 overflow-auto" ref="commentListRef">
         <!-- Skeleton Loading -->
         <div v-if="loading && comments.length === 0" class="p-3 mt-2">
              <SkeletonLoader :count="5" />
@@ -165,7 +165,7 @@
     </div>
 
     <!-- Footer (Input) -->
-    <div class="input-area p-3 bg-black border-top border-secondary border-opacity-10">
+    <div class="input-area p-3 bg-black border-top border-secondary border-opacity-10 flex-shrink-0">
         <div v-if="replyingTo" class="d-flex justify-content-between align-items-center mb-2 px-2 reply-indicator">
             <span class="x-small text-secondary">
                 <span class="text-accent fw-bold">@{{ replyingTo.nickname }}</span>에게 답글 작성 중
@@ -190,6 +190,7 @@
         </div>
     </div>
   </div>
+</Teleport>
 </template>
 
 <script setup>
@@ -477,6 +478,11 @@ defineExpose({
     background-color: rgba(20, 20, 20, 0.95); /* Semi-transparent black */
     backdrop-filter: blur(10px); /* Glassmorphism */
     box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    margin: 0 auto; /* Center horizontally */
+    left: 0;
+    right: 0;
 }
 
 .glass-header {

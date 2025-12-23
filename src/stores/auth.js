@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { login as apiLogin, signup as apiSignup } from '@/api/auth';
 import { getMyInfo } from '@/api/user';
-import router from '@/router';
+// import router from '@/router';
 
 export const useAuthStore = defineStore('auth', () => {
     const token = ref(localStorage.getItem('token') || '');
@@ -47,7 +47,8 @@ export const useAuthStore = defineStore('auth', () => {
 
     const logout = () => {
         clearToken();
-        router.push('/login');
+        // router.push('/login');
+        window.location.href = '/login';
     };
 
     const fetchUserInfo = async () => {
