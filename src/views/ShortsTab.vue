@@ -221,7 +221,27 @@ onMounted(async () => {
             videoItems.value.forEach(el => observer.observe(el));
         }
     }, { immediate: true });
+
+    // 6. Increment View Count on Active Index Change
+    watch(activeIndex, (newIndex) => {
+        if (videoStore.videos.length > newIndex) {
+            const videoId = videoStore.videos[newIndex].videoId;
+            incrementViewCount(videoId);
+        }
+    }, { immediate: true });
 });
+
+const incrementViewCount = async (videoId) => {
+    try {
+        // Fire and forget - just to trigger backend increment
+        await getVideoDetail(videoId);
+        // Optionally update local view count if we want real-time feedback
+        // const video = videoStore.videos.find(v => v.videoId === videoId);
+        // if(video) video.viewCount++; 
+    } catch (e) {
+        console.error("Failed to increment view count", e);
+    }
+};
 
 
 
