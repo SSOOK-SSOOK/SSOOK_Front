@@ -49,6 +49,7 @@ export const useVideoStore = defineStore('video', () => {
         videos.value = [];
         page.value = 1;
         hasMore.value = true;
+        loading.value = false; // Force reset loading state
     };
 
     const toggleLike = async (videoId) => {
