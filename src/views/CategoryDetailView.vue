@@ -77,17 +77,34 @@
                 </div>
                 <div v-else class="row g-2">
                     <div v-for="video in videos" :key="video.videoId" class="col-4">
-                        <div class="ratio ratio-9x16 bg-secondary rounded overflow-hidden position-relative video-card">
-                             <img v-if="video.thumbnailUrl" :src="video.thumbnailUrl" class="w-100 h-100 object-fit-cover" alt="">
-                             <div class="position-absolute bottom-0 start-0 w-100 p-1 text-white bg-gradient-overlay">
-                                <div class="x-small d-flex align-items-center">
+                        <!-- 9:16 Aspect Ratio Card -->
+                        <div 
+                            class="bg-black ratio position-relative video-card border border-secondary border-opacity-25 rounded-2 overflow-hidden cursor-pointer" 
+                            style="--bs-aspect-ratio: 177.77%;"
+                            @click="goToShorts(video.videoId)"
+                        >
+                             <img v-if="video.thumbnailUrl" :src="video.thumbnailUrl" class="w-100 h-100 object-fit-cover" loading="lazy" alt="">
+                             <div v-else class="w-100 h-100 d-flex justify-content-center align-items-center text-secondary bg-dark">
+                                <i class="bi bi-play-btn fs-2 opacity-50"></i>
+                             </div>
+                             
+                             <!-- Gradient Overlay -->
+                             <div class="position-absolute w-100 h-100 top-0 start-0" style="background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 40%); pointer-events: none;"></div>
+
+                             <div class="position-absolute bottom-0 start-0 w-100 p-2 text-white">
+                                <div class="x-small fw-bold text-shadow d-flex align-items-center">
                                     <i class="bi bi-play-fill me-1"></i> {{ formatCount(video.viewCount) }}
                                 </div>
                              </div>
                         </div>
                     </div>
                 </div>
-             </div>
+                
+                <!-- Infinite Scroll Sentinel -->
+                <div ref="sentinelRef" class="py-3 text-center">
+                    <div v-if="videoLoading" class="spinner-border text-primary spinner-border-sm" role="status"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -144,10 +161,6 @@ const loadData = async (id) => {
     }
 };
 
-onMounted(() => {
-    loadData(route.params.id);
-});
-
 // Watch for route ID changes (e.g., parent -> child navigation)
 watch(
     () => route.params.id,
@@ -155,6 +168,24 @@ watch(
         if (newId) loadData(newId);
     }
 );
+
+const sentinelRef = ref(null);
+
+onMounted(() => {
+    loadData(route.params.id);
+});
+
+// Setup Infinite Scroll Observer when sentinel appears
+watch(sentinelRef, (el) => {
+    if (el) {
+        const observer = new IntersectionObserver(async (entries) => {
+            if (entries[0].isIntersecting && !videoLoading.value) {
+               await videoStore.fetchVideos(route.params.id);
+            }
+        }, { threshold: 0.1 });
+        observer.observe(el);
+    }
+});
 
 const goBack = () => {
     // If no history, maybe go home?
@@ -182,6 +213,11 @@ const formatCount = (count) => {
     if (count >= 10000) return (count / 10000).toFixed(1) + '만'; // KB format? using generic K/M
     if (count >= 1000) return (count / 1000).toFixed(1) + 'K';
     return count;
+};
+
+const goToShorts = (videoId) => {
+    // Navigate to Shorts tab with playing specific video
+    router.push({ path: '/', query: { videoId } });
 };
 </script>
 
@@ -242,5 +278,9 @@ const formatCount = (count) => {
 
 .gradient-border {
     background: linear-gradient(45deg, var(--accent-color), #333);
+}
+
+.text-shadow {
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
 }
 </style>
