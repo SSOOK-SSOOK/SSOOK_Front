@@ -1,3 +1,4 @@
+import './errorhandler.js' // MUST BE FIRST
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import './style.css'
@@ -13,3 +14,4 @@ app.use(createPinia())
 app.use(router)
 
 app.mount('#app')
+console.log('Vue App Mounted');

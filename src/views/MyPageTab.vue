@@ -64,7 +64,7 @@
             :class="{ active: activeTab === 'bookmark' }"
             @click="activeTab = 'bookmark'"
         >
-             <i class="bi bi-bookmark-fill fs-5"></i>
+             <i class="bi bi-bar-chart-fill fs-5"></i>
         </div>
     </div>
     
@@ -111,10 +111,65 @@
             </div>
         </div>
 
-        <!-- Tab 3: Bookmarks/Saved -->
-        <div v-if="activeTab === 'bookmark'" class="text-center py-5 text-secondary fade-in">
-             <i class="bi bi-bookmark-star fs-1 mb-3 d-block opacity-50"></i>
-            <p>저장한 콘텐츠가 없습니다.</p>
+        <!-- Tab 3: My Stats -->
+        <div v-if="activeTab === 'bookmark'" class="fade-in px-3 py-4">
+             <div v-if="loadingStats" class="text-center py-5">
+                 <div class="spinner-border text-secondary" role="status"></div>
+             </div>
+             
+             <div v-else class="text-center">
+                <!-- Level Section -->
+                <div class="mb-4">
+                    <div class="d-inline-block position-relative">
+                        <div class="level-circle border border-2 border-secondary rounded-circle d-flex flex-column justify-content-center align-items-center bg-black mx-auto">
+                           <span class="fs-1">🌱</span>
+                           <span class="fw-bold font-primary mt-1 text-white">Lv.{{ userStats?.level || 1 }}</span>
+                        </div>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-dark">
+                            {{ userStats?.totalViewCount || 0 }} views
+                        </span>
+                    </div>
+                    <h4 class="mt-3 fw-bold text-white font-primary">
+                        {{ getLevelTitle(userStats?.level || 1) }}
+                    </h4>
+                    <p class="text-secondary small">
+                        총 <span class="text-accent fw-bold">{{ formatCount(userStats?.watchTime) }}분</span> 동안 성장했어요!
+                    </p>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="row g-3">
+                    <!-- Streak -->
+                    <div class="col-6">
+                        <div class="bg-dark bg-opacity-50 p-3 rounded-4 h-100 border border-secondary border-opacity-25">
+                            <i class="bi bi-fire fs-2 text-danger mb-2"></i>
+                            <div class="text-secondary small mb-1">연속 학습</div>
+                            <div class="fw-bold fs-4">{{ userStats?.streak || 0 }}일</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Time Slot -->
+                    <div class="col-6">
+                        <div class="bg-dark bg-opacity-50 p-3 rounded-4 h-100 border border-secondary border-opacity-25">
+                            <i class="bi bi-clock-history fs-2 text-info mb-2"></i>
+                            <div class="text-secondary small mb-1">주 학습 시간</div>
+                            <div class="fw-bold fs-5">{{ userStats?.timeTag || '-' }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Top Category -->
+                    <div class="col-12">
+                         <div class="bg-dark bg-opacity-50 p-3 rounded-4 border border-secondary border-opacity-25 d-flex align-items-center justify-content-between px-4">
+                            <div class="text-start">
+                                <div class="text-secondary small mb-1">최애 카테고리</div>
+                                <div class="fw-bold fs-5 text-accent">{{ userStats?.topCategory || '아직 없음' }}</div>
+                            </div>
+                            <i class="bi bi-trophy-fill fs-1 text-warning opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+
+             </div>
         </div>
 
     </div>
@@ -127,39 +182,68 @@ import { onMounted, ref, watch } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import { getMyLikedVideos } from '@/api/video';
+import { getUserStats } from '@/api/user';
 
 const authStore = useAuthStore();
 const router = useRouter(); 
 const activeTab = ref('like'); 
 const likedVideos = ref([]);
 const loadingLikes = ref(false);
+const userStats = ref(null);
+const loadingStats = ref(false);
 
 onMounted(async () => {
     if (authStore.isAuthenticated) {
         await authStore.fetchUserInfo();
     }
-    // 초기 로드 (like 탭이 기본이므로)
+    // 초기 로드 
     if (activeTab.value === 'like') {
         fetchLikedVideos();
+    } else if (activeTab.value === 'bookmark') {
+        fetchUserStats();
     }
 });
 
 watch(activeTab, (newTab) => {
     if (newTab === 'like') {
         fetchLikedVideos();
+    } else if (newTab === 'bookmark') {
+        fetchUserStats();
     }
 });
 
 const fetchLikedVideos = async () => {
     loadingLikes.value = true;
     try {
-        const response = await getMyLikedVideos({ page: 1, size: 50 }); // 가져올 개수
+        const response = await getMyLikedVideos({ page: 1, size: 50 }); 
         likedVideos.value = response.data.data.videos;
     } catch (error) {
         console.error("Failed to fetch liked videos", error);
     } finally {
         loadingLikes.value = false;
     }
+};
+
+const fetchUserStats = async () => {
+    loadingStats.value = true;
+    getUserStats(
+        (response) => {
+            userStats.value = response.data.data;
+            loadingStats.value = false;
+        },
+        (error) => {
+            console.error("Failed to fetch user stats", error);
+            loadingStats.value = false;
+        }
+    );
+};
+
+const getLevelTitle = (level) => {
+    if (level >= 5) return "마스터 나무 🌳";
+    if (level >= 4) return "무럭무럭 나무 🌲";
+    if (level >= 3) return "쑥쑥 자라요 🌿";
+    if (level >= 2) return "떡잎 발견 🌱";
+    return "씨앗 심기 🌰";
 };
 
 const formatCount = (num) => {
@@ -242,6 +326,13 @@ const handleLogout = () => {
 
 .drop-shadow {
     filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+}
+
+.level-circle {
+    width: 120px;
+    height: 120px;
+    border-color: var(--accent-color, #C0FF00) !important;
+    box-shadow: 0 0 20px rgba(192, 255, 0, 0.2);
 }
 
 /* Animation */
