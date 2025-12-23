@@ -75,8 +75,9 @@
         <div v-if="activeTab === 'quiz'" class="text-center py-5 text-secondary fade-in">
             <i class="bi bi-pencil-fill fs-1 mb-3 d-block opacity-50"></i>
             <p>풀이한 퀴즈 내역이 없습니다.</p>
-            <button class="btn btn-sm btn-outline-secondary rounded-pill mt-2">퀴즈 풀러가기</button>
+            <button @click="showQuizModal = true" class="btn btn-sm btn-outline-secondary rounded-pill mt-2">퀴즈 풀러가기</button>
         </div>
+        <QuizModal v-model:isVisible="showQuizModal" />
 
         <!-- Tab 2: Liked Videos -->
         <div v-if="activeTab === 'like'" class="fade-in">
@@ -183,10 +184,12 @@ import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import { getMyLikedVideos } from '@/api/video';
 import { getUserStats } from '@/api/user';
+import QuizModal from '@/components/quiz/QuizModal.vue';
 
 const authStore = useAuthStore();
 const router = useRouter(); 
 const activeTab = ref('like'); 
+const showQuizModal = ref(false); 
 const likedVideos = ref([]);
 const loadingLikes = ref(false);
 const userStats = ref(null);
