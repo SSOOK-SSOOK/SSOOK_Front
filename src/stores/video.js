@@ -9,8 +9,21 @@ export const useVideoStore = defineStore('video', () => {
     const page = ref(1);
     const size = ref(10); // Batch size
 
-    const fetchVideos = async (categoryId = null) => {
+    const fetchVideos = async (options = {}) => { // Changed to accept options object or categoryId
         if (loading.value || !hasMore.value) return;
+
+        // Backward compatibility if options is just an ID (though usually null)
+        let categoryId = null;
+        let sortedType = null;
+        let onlySubscribed = false;
+
+        if (typeof options === 'object' && options !== null) {
+            categoryId = options.categoryId;
+            sortedType = options.sortedType;
+            onlySubscribed = options.onlySubscribed;
+        } else {
+            categoryId = options;
+        }
 
         loading.value = true;
         try {
@@ -19,6 +32,8 @@ export const useVideoStore = defineStore('video', () => {
                 size: size.value
             };
             if (categoryId) params.categoryId = categoryId;
+            if (sortedType) params.sortedType = sortedType;
+            if (onlySubscribed) params.onlySubscribed = true;
 
             const response = await getVideoList(params);
 

@@ -1,10 +1,18 @@
 <template>
   <div class="page-container app-bg pb-5">
     <!-- Header -->
-    <div class="header p-3 sticky-top glass-header z-3 d-flex align-items-center justify-content-between transition-colors">
-      <h1 class="fw-bold fs-4 m-0 font-primary app-text">
-        내 구독 <span class="text-accent custom-badge">{{ categoryStore.subscribedCategories.length }}</span>
+    <div class="header d-flex justify-content-center align-items-center py-3 sticky-top glass-header z-3 border-bottom transition-colors" :class="isDarkMode ? 'border-dark' : 'border-light'" style="min-height: 72px;">
+      <h1 class="fw-bold fs-5 m-0 font-primary app-text position-relative">
+        구독
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-accent text-dark ms-1 custom-badge-small" v-if="categoryStore.subscribedCategories.length > 0">
+            {{ categoryStore.subscribedCategories.length }}
+        </span>
       </h1>
+      
+      <!-- Right Action (Optional, maybe nothing or settings) -->
+      <div class="position-absolute end-0 me-3">
+           <!-- Placeholder to balance if needed, or empty -->
+      </div>
     </div>
 
     <!-- Empty State -->
@@ -63,6 +71,11 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import { useCategoryStore } from '@/stores/category';
+import { useThemeStore } from '@/stores/theme';
+import { storeToRefs } from 'pinia';
+
+const themeStore = useThemeStore();
+const { isDarkMode } = storeToRefs(themeStore);
 
 const categoryStore = useCategoryStore();
 const imageErrors = ref({}); // Track broken images
@@ -104,10 +117,13 @@ const handleImageError = (id) => {
     color: var(--accent-color);
 }
 
-.custom-badge {
-    font-size: 0.9rem;
-    vertical-align: top;
-    font-weight: 800;
+.custom-badge-small {
+    font-size: 0.65rem;
+    padding: 0.35em 0.65em;
+    background-color: var(--accent-color);
+}
+.bg-accent {
+    background-color: var(--accent-color) !important;
 }
 
 /* Empty State */

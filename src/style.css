@@ -61,3 +61,11 @@ body {
 #app {
   width: 100%;
 }
+
+/* Global Placeholder Styling */
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-secondary) !important;
+  opacity: 1;
+  /* Firefox */
+}

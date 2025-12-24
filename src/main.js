@@ -14,4 +14,4 @@ app.use(createPinia())
 app.use(router)
 
 app.mount('#app')
-console.log('Vue App Mounted');
+
