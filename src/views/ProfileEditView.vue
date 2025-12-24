@@ -1,12 +1,12 @@
 <template>
-  <div class="page-container text-white bg-black min-vh-100">
+  <div class="page-container app-text app-bg min-vh-100">
     <!-- Header -->
-    <div class="header d-flex align-items-center justify-content-between px-3 py-3 border-bottom border-secondary">
-      <button @click="$router.go(-1)" class="btn btn-link text-white p-0 text-decoration-none">
+    <div class="header d-flex align-items-center justify-content-between px-3 py-3 border-bottom border-secondary transition-colors">
+      <button @click="$router.go(-1)" class="btn btn-link app-text p-0 text-decoration-none">
         <i class="bi bi-chevron-left fs-4"></i>
       </button>
       <span class="fw-bold fs-6">프로필 편집</span>
-      <button @click="handleSave" class="btn btn-link text-white p-0 text-decoration-none fw-bold text-danger" :disabled="isLoading">
+      <button @click="handleSave" class="btn btn-link p-0 text-decoration-none fw-bold text-danger" :disabled="isLoading">
         저장
       </button>
     </div>
@@ -15,7 +15,7 @@
     <div class="p-4">
         <!-- Profile Image Selection -->
         <div class="mb-5">
-            <p class="text-secondary small mb-3">프로필 이미지 선택</p>
+            <p class="app-text-secondary small mb-3">프로필 이미지 선택</p>
             <div class="row g-3 justify-content-center">
                 <div 
                     v-for="(img, index) in profileImages" 
@@ -25,7 +25,7 @@
                 >
                     <img 
                         :src="img" 
-                        class="avatar rounded opacity-75 object-fit-cover" 
+                        class="avatar rounded opacity-75 object-fit-cover app-card" 
                         :class="{ 'border border-2 border-danger opacity-100': form.profileImage === img }"
                         alt="Profile Option"
                     >
@@ -37,20 +37,20 @@
         </div>
 
         <div class="mb-4">
-            <label class="form-label text-secondary small">닉네임</label>
+            <label class="form-label app-text-secondary small">닉네임</label>
             <input 
                 v-model="form.nickname" 
                 type="text" 
-                class="form-control bg-dark text-white border-secondary"
+                class="form-control app-card app-text border-secondary"
                 placeholder="닉네임"
             >
         </div>
 
         <div class="mb-4">
-            <label class="form-label text-secondary small">소개</label>
+            <label class="form-label app-text-secondary small">소개</label>
             <textarea 
                 v-model="form.intro" 
-                class="form-control bg-dark text-white border-secondary" 
+                class="form-control app-card app-text border-secondary" 
                 rows="3" 
                 placeholder="소개"
             ></textarea>

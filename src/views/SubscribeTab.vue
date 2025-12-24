@@ -1,8 +1,8 @@
 <template>
-  <div class="page-container pb-5">
+  <div class="page-container app-bg pb-5">
     <!-- Header -->
-    <div class="header p-3 sticky-top glass-header z-3 d-flex align-items-center justify-content-between">
-      <h1 class="fw-bold fs-4 m-0 font-primary text-white">
+    <div class="header p-3 sticky-top glass-header z-3 d-flex align-items-center justify-content-between transition-colors">
+      <h1 class="fw-bold fs-4 m-0 font-primary app-text">
         내 구독 <span class="text-accent custom-badge">{{ categoryStore.subscribedCategories.length }}</span>
       </h1>
     </div>
@@ -12,8 +12,8 @@
         <div class="empty-icon-wrapper mb-4">
             <i class="bi bi-bookmark-heart fs-1 text-accent"></i>
         </div>
-        <p class="text-white fw-bold fs-5 mb-1">구독한 카테고리가 없어요</p>
-        <p class="text-secondary small mb-4">관심 있는 주제를 찾아보세요!</p>
+        <p class="app-text fw-bold fs-5 mb-1">구독한 카테고리가 없어요</p>
+        <p class="app-text-secondary small mb-4">관심 있는 주제를 찾아보세요!</p>
         <button @click="$router.push('/category')" class="btn btn-neon rounded-pill px-4 py-2 fw-bold">
             카테고리 둘러보기
         </button>
@@ -24,7 +24,7 @@
         <div 
             v-for="(item, index) in categoryStore.subscribedCategories" 
             :key="item.categoryId" 
-            class="subscription-card d-flex align-items-center p-3 mb-3"
+            class="subscription-card d-flex align-items-center p-3 mb-3 app-card border border-secondary border-opacity-10"
             :style="{ animationDelay: `${index * 50}ms` }"
         >
             <!-- Thumbnail -->
@@ -36,15 +36,15 @@
                     class="thumbnail-img rounded-circle"
                     @error="handleImageError(item.categoryId)"
                 >
-                <div v-else class="thumbnail-placeholder rounded-circle">
+                <div v-else class="thumbnail-placeholder rounded-circle bg-secondary bg-opacity-10 header-text">
                     <span class="fs-4 fw-bold text-accent">{{ item.name.charAt(0) }}</span>
                 </div>
             </div>
             
             <!-- Info -->
             <div class="flex-grow-1" @click="$router.push(`/category/${item.categoryId}`)" style="cursor: pointer; min-width: 0;">
-                <div class="fw-bold text-white fs-5 mb-1 text-truncate">{{ item.name }}</div>
-                <div class="small text-secondary text-truncate">{{ item.description || '새로운 영상을 기다려보세요' }}</div>
+                <div class="fw-bold app-text fs-5 mb-1 text-truncate">{{ item.name }}</div>
+                <div class="small app-text-secondary text-truncate">{{ item.description || '새로운 영상을 기다려보세요' }}</div>
             </div>
 
             <!-- Unsubscribe Button -->
@@ -86,14 +86,13 @@ const handleImageError = (id) => {
 <style scoped>
 .page-container {
     min-height: 100vh;
-    background-color: #000;
     padding-bottom: 80px; 
 }
 
 .glass-header {
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(var(--bg-rgb), 0.7); /* Need to ensure --bg-rgb exists or use fallback */
     backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid var(--card-border);
 }
 
 .font-primary {
@@ -137,9 +136,6 @@ const handleImageError = (id) => {
 
 /* Subscription Card */
 .subscription-card {
-    background: rgba(20, 20, 20, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 16px;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     position: relative;
     overflow: hidden;
@@ -149,10 +145,9 @@ const handleImageError = (id) => {
 }
 
 .subscription-card:hover {
-    background: rgba(30, 30, 30, 0.8);
     border-color: rgba(192, 255, 0, 0.3);
     transform: translateY(-2px) scale(1.01);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 .thumbnail-wrapper {
