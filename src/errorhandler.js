@@ -6,4 +6,4 @@ window.addEventListener('unhandledrejection', (event) => {
     console.error("UNHANDLED PROMISE REJECTION:", event.reason);
     document.body.innerHTML += '<div style="background:orange;color:white;padding:20px;"><h1>Unhandled Promise Rejection</h1><pre>' + (event.reason?.stack || event.reason) + '</pre></div>';
 });
-console.log("Error handler installed - Debug Mode");
+

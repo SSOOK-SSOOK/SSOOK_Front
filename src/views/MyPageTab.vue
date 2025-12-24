@@ -2,7 +2,7 @@
   <div class="page-container app-text app-bg min-vh-100 transition-colors">
     <!-- 상단 헤더 (틱톡 스타일) -->
     <div class="header d-flex justify-content-center align-items-center py-3 border-bottom" :class="isDarkMode ? 'border-dark' : 'border-light'">
-      <span class="fw-bold fs-5 font-primary">{{ authStore.user?.nickname || '마이페이지' }}</span>
+      <span class="fw-bold fs-5 font-primary">마이페이지</span>
       
       <!-- Buttons -->
       <div class="position-absolute end-0 me-3 d-flex gap-2">

@@ -56,6 +56,44 @@
             ></textarea>
         </div>
 
+        <!-- Password Change Section -->
+        <div class="mb-4 mt-5 pt-4 border-top border-secondary">
+            <h3 class="fs-6 fw-bold mb-3">비밀번호 변경</h3>
+            <div class="mb-3">
+                <input 
+                    v-model="passwordForm.currentPassword" 
+                    type="password" 
+                    class="form-control app-card app-text border-secondary"
+                    placeholder="현재 비밀번호"
+                >
+            </div>
+            <div class="mb-3">
+                <input 
+                    v-model="passwordForm.newPassword" 
+                    type="password" 
+                    class="form-control app-card app-text border-secondary"
+                    placeholder="비밀번호"
+                >
+            </div>
+            <div class="mb-3">
+                <input 
+                    v-model="passwordForm.confirmPassword" 
+                    type="password" 
+                    class="form-control app-card app-text border-secondary"
+                    placeholder="비밀번호 확인"
+                >
+            </div>
+            <div class="text-end">
+                <button 
+                    @click="handlePasswordChange" 
+                    class="btn btn-dark btn-sm rounded-pill px-3"
+                    :disabled="isPasswordLoading"
+                >
+                    {{ isPasswordLoading ? '변경 중...' : '비밀번호 변경' }}
+                </button>
+            </div>
+        </div>
+
         <!-- Withdraw Button -->
         <div class="mt-5 text-center pt-5 border-top border-secondary">
              <button @click="handleWithdraw" class="btn btn-link text-danger text-decoration-none small">
@@ -72,7 +110,7 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { useToastStore } from '@/stores/toast';
 import { useDialogStore } from '@/stores/dialog';
-import { updateMyInfo, withdraw, getProfileImages } from '@/api/user';
+import { updateMyInfo, withdraw, getProfileImages, changePassword } from '@/api/user';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -137,6 +175,57 @@ const handleSave = async () => {
         toastStore.addToast('저장에 실패했습니다.', 'error');
     } finally {
         isLoading.value = false;
+    }
+};
+
+const passwordForm = reactive({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+});
+const isPasswordLoading = ref(false);
+
+const handlePasswordChange = async () => {
+    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+        toastStore.addToast('모든 비밀번호 필드를 입력해주세요.', 'warning');
+        return;
+    }
+    if (passwordForm.newPassword.length < 4) {
+        toastStore.addToast('새 비밀번호는 4자 이상이어야 합니다.', 'warning');
+        return;
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+        toastStore.addToast('새 비밀번호가 일치하지 않습니다.', 'warning');
+        return;
+    }
+
+    try {
+        isPasswordLoading.value = true;
+        await changePassword({
+            currentPassword: passwordForm.currentPassword,
+            newPassword: passwordForm.newPassword
+        });
+        
+        toastStore.addToast('비밀번호가 변경되었습니다. 다시 로그인해주세요.', 'success');
+        
+        // Optional: Logout user to enforce re-login with new password
+        authStore.logout();
+        router.push('/login');
+        
+        // Reset form
+        passwordForm.currentPassword = '';
+        passwordForm.newPassword = '';
+        passwordForm.confirmPassword = '';
+    } catch (error) {
+        console.error(error);
+        if (error.response && error.response.status === 400) {
+           // Backend throws 400 for wrong password
+           toastStore.addToast('현재 비밀번호가 일치하지 않거나 오류가 발생했습니다.', 'error');
+        } else {
+           toastStore.addToast('비밀번호 변경에 실패했습니다.', 'error');
+        }
+    } finally {
+        isPasswordLoading.value = false;
     }
 };
 

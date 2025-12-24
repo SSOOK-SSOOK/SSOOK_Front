@@ -46,3 +46,8 @@ export function deleteComment(commentId) {
 export function getMyLikedVideos(params) {
     return api.get('/video/my-likes', { params });
 }
+
+// 실시간 급상승 영상 조회
+export function getTrendingVideos() {
+    return api.get('/video/trending');
+}

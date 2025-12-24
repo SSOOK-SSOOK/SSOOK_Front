@@ -101,6 +101,18 @@
 
     <!-- Video Feed -->
     <div class="video-feed" ref="feedContainer">
+        <!-- Empty State -->
+        <div v-if="!videoStore.loading && videoStore.videos.length === 0" class="d-flex flex-column align-items-center justify-content-center h-100 text-center px-4">
+            <div class="mb-4 rounded-circle bg-secondary bg-opacity-25 p-4 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                <i class="bi bi-collection-play-fill fs-1 text-secondary"></i>
+            </div>
+            <h3 class="fw-bold mb-2">구독한 카테고리가 없어요!</h3>
+            <p class="text-secondary mb-4">관심 있는 카테고리를 구독하고<br>나만의 맞춤 영상을 받아보세요.</p>
+            <router-link to="/category" class="btn btn-neon rounded-pill px-4 py-2 fw-bold text-white text-decoration-none">
+                카테고리 찾아보기
+            </router-link>
+        </div>
+
         <div 
             v-for="(video, index) in videoStore.videos" 
             :key="video.videoId" 
@@ -252,8 +264,10 @@ onMounted(async () => {
     // 1. Reset store to ensure clean state (Fixes navigation issues)
     videoStore.resetVideos();
     
-    // 2. Fetch initial video list
-    await videoStore.fetchVideos();
+    // 2. Fetch initial video list (Random Order for Feed, Subscribed Only)
+    // IMPORTANT: If user is Guest (no token), backend might return all or error depending on mapping.
+    // For now, let's assume valid token exists or we want to show 'Empty' for guests.
+    await videoStore.fetchVideos({ sortedType: 4, onlySubscribed: true });
     
     // 3. Check for navigation query (Direct Link)
     // Route is now available from top scope
@@ -307,7 +321,8 @@ onMounted(async () => {
                 activeIndex.value = index;
                 
                 if (index >= videoStore.videos.length - 2) {
-                    videoStore.fetchVideos();
+                    // Fetch more with same random sort type and filters
+                    videoStore.fetchVideos({ sortedType: 4, onlySubscribed: true });
                 }
             }
         });
@@ -384,7 +399,7 @@ const setSearchSort = async (type) => {
 };
 
 const handleSearch = async () => {
-    console.log("handleSearch triggered", searchQuery.value);
+
     if (!searchQuery.value.trim()) return;
     
     // Reset
@@ -397,7 +412,7 @@ const handleSearch = async () => {
 };
 
 const fetchSearchVideos = async () => {
-    console.log("fetching search videos...");
+
     try {
         const params = {
             page: searchPage.value, 
@@ -414,7 +429,7 @@ const fetchSearchVideos = async () => {
 
         const { data } = await getVideoList(params);
         
-        console.log("Search Response Data:", data);
+
 
         const newVideos = data.data.videos || []; // Safety check
         if (newVideos.length < 20) {

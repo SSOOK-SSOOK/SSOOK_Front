@@ -26,10 +26,16 @@ function withdraw(userId) {
     return api.delete(`/users/${userId}`);
 }
 
+// 비밀번호 변경
+function changePassword(data) {
+    return api.patch('/users/me/password', data);
+}
+
 export {
     getUserStats,
     getProfileImages,
     getMyInfo,
     updateMyInfo,
-    withdraw
+    withdraw,
+    changePassword
 };
