@@ -1,27 +1,27 @@
 <template>
-  <div class="login-container d-flex flex-column justify-content-center align-items-center text-white">
+  <div class="login-container d-flex flex-column justify-content-center align-items-center app-text app-bg">
     <div class="logo mb-5">
       <h1 class="fw-bold neon-text">쑥쑥</h1>
-      <p class="text-secondary small">숏폼 학습 플랫폼</p>
+      <p class="app-text-secondary small">숏폼 학습 플랫폼</p>
     </div>
 
     <form @submit.prevent="handleLogin" class="w-100 p-4" style="max-width: 400px;">
       <div class="mb-3">
-        <label class="form-label text-secondary small">아이디</label>
+        <label class="form-label app-text-secondary small">아이디</label>
         <input 
           v-model="loginId" 
           type="text" 
-          class="form-control bg-dark text-white border-secondary" 
+          class="form-control app-card app-text border-secondary" 
           placeholder="아이디를 입력하세요"
           required
         >
       </div>
       <div class="mb-5">
-        <label class="form-label text-secondary small">비밀번호</label>
+        <label class="form-label app-text-secondary small">비밀번호</label>
         <input 
           v-model="password" 
           type="password" 
-          class="form-control bg-dark text-white border-secondary" 
+          class="form-control app-card app-text border-secondary" 
           placeholder="비밀번호를 입력하세요"
           required
         >
@@ -32,8 +32,8 @@
       </button>
       
       <div class="text-center">
-        <router-link to="/signup" class="text-secondary text-decoration-none small">
-          계정이 없으신가요? <span class="text-white fw-bold">회원가입</span>
+        <router-link to="/signup" class="app-text-secondary text-decoration-none small">
+          계정이 없으신가요? <span class="app-text fw-bold">회원가입</span>
         </router-link>
       </div>
     </form>
@@ -64,7 +64,6 @@ const handleLogin = async () => {
 <style scoped>
 .login-container {
   min-height: 100vh;
-  background-color: #000000;
 }
 
 .neon-text {

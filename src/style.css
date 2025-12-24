@@ -1,22 +1,62 @@
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
 
 :root {
+  /* Dark Mode (Default) */
   --bg-color: #121212;
   --text-color: #ffffff;
+  --text-secondary: #adb5bd;
+  /* Bootstrap gray-500 equivalent */
+  --card-bg: #212529;
+  /* Bootstrap dark */
+  --card-border: rgba(255, 255, 255, 0.25);
   --accent-color: #C0FF00;
-  /* Neon Lime Green */
   --nav-bg: #000000;
 }
 
+body.light-mode {
+  /* Light Mode Overrides */
+  --bg-color: #f8f9fa;
+  /* Bootstrap light gray */
+  --text-color: #212529;
+  /* Bootstrap dark text */
+  --text-secondary: #6c757d;
+  /* Bootstrap gray-600 */
+  --card-bg: #ffffff;
+  --card-border: rgba(0, 0, 0, 0.125);
+  --accent-color: #4CAF50;
+  /* Darker Green for Light Mode or keep Neon? Let's keep Neon for identity but maybe tweak readability if needed. */
+  --nav-bg: #ffffff;
+}
+
 body {
-  background-color: #f0f2f5;
-  /* Outer background for PC */
+  background-color: var(--bg-color);
   color: var(--text-color);
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   margin: 0;
   padding: 0;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+/* Utility Classes for Theme */
+.app-bg {
+  background-color: var(--bg-color) !important;
+}
+
+.app-text {
+  color: var(--text-color) !important;
+}
+
+.app-text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+.app-card {
+  background-color: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
 
 #app {
   width: 100%;

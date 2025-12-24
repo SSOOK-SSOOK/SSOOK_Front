@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container bg-black text-white pb-5">
+  <div class="page-container app-bg app-text pb-5">
     <div v-if="loading" class="d-flex justify-content-center py-5">
         <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Loading...</span>
@@ -9,11 +9,11 @@
     <div v-else-if="category" class="d-flex flex-column h-100">
         <!-- Header -->
         <div class="header d-flex align-items-center justify-content-between p-3 sticky-top glass-header z-3">
-            <button @click="goBack" class="btn btn-icon text-white p-0" aria-label="Go Back">
+            <button @click="goBack" class="btn btn-icon app-text p-0" aria-label="Go Back">
                 <i class="bi bi-chevron-left fs-4"></i>
             </button>
-            <h1 class="fs-5 fw-bold m-0 text-center font-primary text-truncate px-2">{{ category.name }}</h1>
-             <button class="btn btn-icon text-white p-0" aria-label="More Options">
+            <h1 class="fs-5 fw-bold m-0 text-center font-primary text-truncate px-2 app-text">{{ category.name }}</h1>
+             <button class="btn btn-icon app-text p-0" aria-label="More Options">
                 <i class="bi bi-three-dots-vertical fs-5"></i>
             </button>
         </div>
@@ -21,15 +21,15 @@
         <!-- Banner / Info -->
         <div class="text-center p-4">
              <div class="d-inline-block rounded-circle overflow-hidden mb-3 gradient-border p-1" style="width: 84px; height: 84px;">
-                 <div class="w-100 h-100 rounded-circle overflow-hidden bg-black">
+                 <div class="w-100 h-100 rounded-circle overflow-hidden app-card d-flex justify-content-center align-items-center">
                     <img v-if="category.imageUrl" :src="category.imageUrl" class="w-100 h-100 object-fit-cover" alt="">
                     <div v-else class="w-100 h-100 d-flex justify-content-center align-items-center bg-secondary">
                         <i class="bi bi-hash fs-1 text-white opacity-50"></i>
                     </div>
                  </div>
             </div>
-            <h2 class="fw-bold fs-3 mb-2 font-primary">{{ category.name }}</h2>
-            <p class="text-secondary small px-4">{{ category.description }}</p>
+            <h2 class="fw-bold fs-3 mb-2 font-primary app-text">{{ category.name }}</h2>
+            <p class="app-text-secondary small px-4">{{ category.description }}</p>
         </div>
 
         <!-- Content Area -->
@@ -38,7 +38,7 @@
             <!-- CASE 1: Parent Category (Show Children) -->
             <div v-if="category.hasChildren && category.children && category.children.length > 0">
                 <div class="d-flex flex-column gap-2 mt-4">
-                     <div v-for="child in category.children" :key="child.categoryId" class="child-category-card d-flex align-items-center p-3" @click="goToDetail(child.categoryId)">
+                     <div v-for="child in category.children" :key="child.categoryId" class="child-category-card d-flex align-items-center p-3 cursor-pointer app-card" @click="goToDetail(child.categoryId)">
                         <!-- Thumbnail -->
                         <div class="rounded-circle overflow-hidden flex-shrink-0 me-3 bg-secondary" style="width: 48px; height: 48px;">
                             <img v-if="child.imageUrl" :src="child.imageUrl" alt="" class="w-100 h-100 object-fit-cover">
@@ -48,10 +48,10 @@
                         </div>
                         
                         <div class="flex-grow-1">
-                            <div class="fw-semibold">{{ child.name }}</div>
-                            <div class="small text-secondary text-truncate" style="max-width: 200px;">{{ child.description }}</div>
+                            <div class="fw-semibold app-text">{{ child.name }}</div>
+                            <div class="small app-text-secondary text-truncate" style="max-width: 200px;">{{ child.description }}</div>
                         </div>
-                        <i class="bi bi-chevron-right text-secondary"></i>
+                        <i class="bi bi-chevron-right app-text-secondary"></i>
                     </div>
                 </div>
             </div>
@@ -68,11 +68,10 @@
                 </button>
 
                 <!-- Videos Grid -->
-                <!-- <h3 class="fs-6 fw-bold mb-3">최신 쇼츠</h3> -->
                 <div v-if="videoLoading" class="text-center py-5">
                     <div class="spinner-border text-primary spinner-border-sm" role="status"></div>
                 </div>
-                <div v-else-if="videos.length === 0" class="text-center text-secondary py-5">
+                <div v-else-if="videos.length === 0" class="text-center app-text-secondary py-5">
                     등록된 영상이 없습니다.
                 </div>
                 <div v-else class="row g-2">
@@ -109,7 +108,7 @@
     </div>
 
     <!-- Error/Empty State -->
-    <div v-else class="flex-grow-1 d-flex justify-content-center align-items-center text-secondary">
+    <div v-else class="flex-grow-1 d-flex justify-content-center align-items-center app-text-secondary">
         <div class="text-center">
             <i class="bi bi-exclamation-triangle fs-1 mb-3"></i>
             <p>{{ errorMessage || '카테고리 정보를 불러올 수 없습니다.' }}</p>
@@ -227,9 +226,12 @@ const goToShorts = (videoId) => {
 }
 
 .glass-header {
-    background: rgba(0, 0, 0, 0.7);
+    background: var(--bg-color-opacity-80, rgba(0, 0, 0, 0.8)); /* Need to define this or use fallback */
+    /* Variable workaround: since we can't easily do var + opacity without RGB vars */
+    background-color: var(--nav-bg); 
+    opacity: 0.95;
     backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid var(--card-border);
 }
 
 .font-primary {
@@ -266,14 +268,14 @@ const goToShorts = (videoId) => {
 
 /* New Card Styles */
 .child-category-card {
-    background: rgba(20, 20, 20, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    /* Removed hardcoded background/border in favor of app-card class */
     border-radius: 12px;
     transition: all 0.2s ease;
 }
 .child-category-card:hover {
-    background: rgba(30, 30, 30, 0.8);
     transform: translateX(4px);
+    /* Allow app-card hover logic or add specific hover */
+    filter: brightness(1.1);
 }
 
 .gradient-border {

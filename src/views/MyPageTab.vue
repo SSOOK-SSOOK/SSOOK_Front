@@ -1,11 +1,20 @@
 <template>
-  <div class="page-container text-white">
+  <div class="page-container app-text app-bg min-vh-100 transition-colors">
     <!-- 상단 헤더 (틱톡 스타일) -->
-    <div class="header d-flex justify-content-center align-items-center py-3 border-bottom border-dark">
+    <div class="header d-flex justify-content-center align-items-center py-3 border-bottom" :class="isDarkMode ? 'border-dark' : 'border-light'">
       <span class="fw-bold fs-5 font-primary">{{ authStore.user?.nickname || '마이페이지' }}</span>
-      <button class="btn btn-icon position-absolute end-0 me-3 text-white" @click="$router.push('/profile/edit')">
-          <i class="bi bi-gear fs-4"></i>
-      </button>
+      
+      <!-- Buttons -->
+      <div class="position-absolute end-0 me-3 d-flex gap-2">
+          <!-- Theme Toggle -->
+          <button class="btn btn-icon app-text" @click="themeStore.toggleTheme">
+              <i class="bi" :class="isDarkMode ? 'bi-moon-fill' : 'bi-sun-fill text-warning'"></i>
+          </button>
+          <!-- Settings -->
+          <button class="btn btn-icon app-text" @click="$router.push('/profile/edit')">
+              <i class="bi bi-gear fs-4"></i>
+          </button>
+      </div>
     </div>
 
     <!-- 프로필 섹션 -->
@@ -28,15 +37,15 @@
       
       <!-- 한줄 소개 -->
       <div class="mt-3 px-4 text-center">
-         <p class="text-secondary text-break small" style="white-space: pre-line;">{{ authStore.user?.intro || '자기소개를 입력해보세요.' }}</p>
+         <p class="app-text-secondary text-break small" style="white-space: pre-line;">{{ authStore.user?.intro || '자기소개를 입력해보세요.' }}</p>
       </div>
       
       <!-- 버튼 그룹 -->
       <div class="d-flex justify-content-center gap-2 px-4 mt-4">
-        <button @click="$router.push('/profile/edit')" class="btn btn-dark border-secondary text-white flex-grow-1 py-2 fw-semibold rounded-pill">
+        <button @click="$router.push('/profile/edit')" class="btn app-card app-text border-secondary flex-grow-1 py-2 fw-semibold rounded-pill">
             프로필 편집
         </button>
-        <button @click="handleLogout" class="btn btn-dark border-secondary text-white flex-grow-0 px-3 py-2 rounded-pill">
+        <button @click="handleLogout" class="btn app-card app-text border-secondary flex-grow-0 px-3 py-2 rounded-pill">
             <i class="bi bi-box-arrow-right"></i>
         </button>
       </div>
@@ -44,7 +53,7 @@
     </div>
     
     <!-- 탭 메뉴 -->
-    <div class="d-flex border-bottom border-dark mt-5 sticky-top bg-black z-2">
+    <div class="d-flex border-bottom mt-5 sticky-top z-2 app-bg" :class="isDarkMode ? 'border-dark' : 'border-light'">
         <div 
             class="flex-grow-1 text-center py-3 cursor-pointer tab-item"
             :class="{ active: activeTab === 'quiz' }"
@@ -72,7 +81,7 @@
     <div class="content-area min-vh-50">
         
         <!-- Tab 1: Quiz -->
-        <div v-if="activeTab === 'quiz'" class="text-center py-5 text-secondary fade-in">
+        <div v-if="activeTab === 'quiz'" class="text-center py-5 app-text-secondary fade-in">
             <i class="bi bi-pencil-fill fs-1 mb-3 d-block opacity-50"></i>
             <p>풀이한 퀴즈 내역이 없습니다.</p>
             <button @click="showQuizModal = true" class="btn btn-sm btn-outline-secondary rounded-pill mt-2">퀴즈 풀러가기</button>
@@ -85,7 +94,7 @@
                  <div class="spinner-border text-secondary" role="status"></div>
              </div>
              
-             <div v-else-if="likedVideos.length === 0" class="text-center py-5 text-secondary">
+             <div v-else-if="likedVideos.length === 0" class="text-center py-5 app-text-secondary">
                  <i class="bi bi-heart fs-1 mb-3 d-block opacity-50"></i>
                  <p>좋아요 표시한 영상이 없습니다.</p>
              </div>
@@ -121,19 +130,19 @@
              <div v-else class="text-center">
                 <!-- Level Section -->
                 <div class="mb-4">
-                    <div class="d-inline-block position-relative">
-                        <div class="level-circle border border-2 border-secondary rounded-circle d-flex flex-column justify-content-center align-items-center bg-black mx-auto">
+                    <div class="d-inline-block position-relative cursor-pointer" @click="showLevelGuide = true">
+                        <div class="level-circle border border-2 border-secondary rounded-circle d-flex flex-column justify-content-center align-items-center app-card mx-auto">
                            <span class="fs-1">🌱</span>
-                           <span class="fw-bold font-primary mt-1 text-white">Lv.{{ userStats?.level || 1 }}</span>
+                           <span class="fw-bold font-primary mt-1 app-text">Lv.{{ userStats?.level || 1 }}</span>
                         </div>
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-dark">
                             {{ userStats?.totalViewCount || 0 }} views
                         </span>
                     </div>
-                    <h4 class="mt-3 fw-bold text-white font-primary">
+                    <h4 class="mt-3 fw-bold font-primary app-text">
                         {{ getLevelTitle(userStats?.level || 1) }}
                     </h4>
-                    <p class="text-secondary small">
+                    <p class="app-text-secondary small">
                         총 <span class="text-accent fw-bold">{{ formatCount(userStats?.watchTime) }}분</span> 동안 성장했어요!
                     </p>
                 </div>
@@ -142,27 +151,44 @@
                 <div class="row g-3">
                     <!-- Streak -->
                     <div class="col-6">
-                        <div class="bg-dark bg-opacity-50 p-3 rounded-4 h-100 border border-secondary border-opacity-25">
+                        <div class="app-card p-3 rounded-4 h-100 border border-secondary border-opacity-25">
                             <i class="bi bi-fire fs-2 text-danger mb-2"></i>
-                            <div class="text-secondary small mb-1">연속 학습</div>
-                            <div class="fw-bold fs-4">{{ userStats?.streak || 0 }}일</div>
+                            <div class="app-text-secondary small mb-1">연속 학습</div>
+                            <div class="fw-bold fs-4 app-text">{{ userStats?.streak || 0 }}일</div>
                         </div>
                     </div>
                     
                     <!-- Time Slot -->
                     <div class="col-6">
-                        <div class="bg-dark bg-opacity-50 p-3 rounded-4 h-100 border border-secondary border-opacity-25">
+                        <div class="app-card p-3 rounded-4 h-100 border border-secondary border-opacity-25">
                             <i class="bi bi-clock-history fs-2 text-info mb-2"></i>
-                            <div class="text-secondary small mb-1">주 학습 시간</div>
-                            <div class="fw-bold fs-5">{{ userStats?.timeTag || '-' }}</div>
+                            <div class="app-text-secondary small mb-1">주 학습 시간</div>
+                            <div class="fw-bold fs-5 app-text">{{ userStats?.timeTag || '-' }}</div>
                         </div>
                     </div>
 
-                    <!-- Top Category -->
+                    <!-- New Row: Watch Time & Next Level (Moved Up) -->
+                    <div class="col-6">
+                        <div class="app-card p-3 rounded-4 h-100 border border-secondary border-opacity-25">
+                            <i class="bi bi-hourglass-split fs-2 text-primary mb-2"></i>
+                            <div class="app-text-secondary small mb-1">총 학습 시간</div>
+                            <div class="fw-bold fs-5 app-text">{{ formatCount(userStats?.watchTime) }}분</div>
+                        </div>
+                    </div>
+
+                    <div class="col-6">
+                        <div class="app-card p-3 rounded-4 h-100 border border-secondary border-opacity-25">
+                            <i class="bi bi-graph-up-arrow fs-2 text-success mb-2"></i>
+                            <div class="app-text-secondary small mb-1">다음 레벨까지</div>
+                            <div class="fw-bold fs-5 app-text">{{ getNextLevelRemaining(userStats?.totalViewCount) }}개</div>
+                        </div>
+                    </div>
+
+                    <!-- Top Category (Moved Down) -->
                     <div class="col-12">
-                         <div class="bg-dark bg-opacity-50 p-3 rounded-4 border border-secondary border-opacity-25 d-flex align-items-center justify-content-between px-4">
+                         <div class="app-card p-3 rounded-4 border border-secondary border-opacity-25 d-flex align-items-center justify-content-between px-4">
                             <div class="text-start">
-                                <div class="text-secondary small mb-1">최애 카테고리</div>
+                                <div class="app-text-secondary small mb-1">최애 카테고리</div>
                                 <div class="fw-bold fs-5 text-accent">{{ userStats?.topCategory || '아직 없음' }}</div>
                             </div>
                             <i class="bi bi-trophy-fill fs-1 text-warning opacity-50"></i>
@@ -173,23 +199,78 @@
              </div>
         </div>
 
-    </div>
+        <!-- Level Guide Modal (Teleport to body) -->
+        <Teleport to="body">
+            <div v-if="showLevelGuide" class="modal-overlay" @click.self="showLevelGuide = false">
+                <div class="level-guide-content rounded-4 p-4 text-center position-relative fade-in app-card app-text">
+                    <button class="btn btn-close position-absolute top-0 end-0 m-3" 
+                            :class="isDarkMode ? 'btn-close-white' : ''" 
+                            @click="showLevelGuide = false"></button>
+                    
+                    <h4 class="fw-bold font-primary mb-4 app-text">🌱 레벨업 가이드</h4>
+                    
+                    <div class="text-start">
+                        <div class="level-row d-flex align-items-center py-2">
+                             <span class="fs-2 me-3">🌱</span>
+                             <div>
+                                 <div class="fw-bold text-accent">Lv.1 씨앗 심기</div>
+                                 <div class="small app-text-secondary">가입 시 시작</div>
+                             </div>
+                        </div>
+                        <div class="level-row d-flex align-items-center py-2">
+                             <span class="fs-2 me-3">🌱</span>
+                             <div>
+                                 <div class="fw-bold app-text">Lv.2 떡잎 발견</div>
+                                 <div class="small app-text-secondary">영상 시청 5회 이상</div>
+                             </div>
+                        </div>
+                        <div class="level-row d-flex align-items-center py-2">
+                             <span class="fs-2 me-3">🌿</span>
+                             <div>
+                                 <div class="fw-bold app-text">Lv.3 쑥쑥 자라요</div>
+                                 <div class="small app-text-secondary">영상 시청 20회 이상</div>
+                             </div>
+                        </div>
+                        <div class="level-row d-flex align-items-center py-2">
+                             <span class="fs-2 me-3">🌲</span>
+                             <div>
+                                 <div class="fw-bold app-text">Lv.4 무럭무럭 나무</div>
+                                 <div class="small app-text-secondary">영상 시청 50회 이상</div>
+                             </div>
+                        </div>
+                        <div class="level-row d-flex align-items-center py-2">
+                             <span class="fs-2 me-3">🌳</span>
+                             <div>
+                                 <div class="fw-bold text-warning">Lv.5 마스터 나무</div>
+                                 <div class="small app-text-secondary">영상 시청 100회 이상</div>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
 
+    </div>
   </div>
 </template>
 
 <script setup>
 import { onMounted, ref, watch } from 'vue';
 import { useAuthStore } from '@/stores/auth';
+import { useThemeStore } from '@/stores/theme'; // Import Theme Store
 import { useRouter } from 'vue-router';
 import { getMyLikedVideos } from '@/api/video';
 import { getUserStats } from '@/api/user';
 import QuizModal from '@/components/quiz/QuizModal.vue';
+import { storeToRefs } from 'pinia'; // For reactive destruction if needed, or just use dot notation
 
 const authStore = useAuthStore();
+const themeStore = useThemeStore();
+const { isDarkMode } = storeToRefs(themeStore); // Make isDarkMode reactive
 const router = useRouter(); 
 const activeTab = ref('like'); 
-const showQuizModal = ref(false); 
+const showQuizModal = ref(false);
+const showLevelGuide = ref(false); 
 const likedVideos = ref([]);
 const loadingLikes = ref(false);
 const userStats = ref(null);
@@ -229,16 +310,14 @@ const fetchLikedVideos = async () => {
 
 const fetchUserStats = async () => {
     loadingStats.value = true;
-    getUserStats(
-        (response) => {
-            userStats.value = response.data.data;
-            loadingStats.value = false;
-        },
-        (error) => {
-            console.error("Failed to fetch user stats", error);
-            loadingStats.value = false;
-        }
-    );
+    try {
+        const response = await getUserStats();
+        userStats.value = response.data.data;
+    } catch (error) {
+        console.error("Failed to fetch user stats", error);
+    } finally {
+        loadingStats.value = false;
+    }
 };
 
 const getLevelTitle = (level) => {
@@ -246,7 +325,17 @@ const getLevelTitle = (level) => {
     if (level >= 4) return "무럭무럭 나무 🌲";
     if (level >= 3) return "쑥쑥 자라요 🌿";
     if (level >= 2) return "떡잎 발견 🌱";
+    if (level >= 2) return "떡잎 발견 🌱";
     return "씨앗 심기 🌰";
+};
+
+const getNextLevelRemaining = (currentViews) => {
+    const views = currentViews || 0;
+    if (views < 5) return 5 - views; // Lv 2 (5)
+    if (views < 20) return 20 - views; // Lv 3 (20)
+    if (views < 50) return 50 - views; // Lv 4 (50)
+    if (views < 100) return 100 - views; // Lv 5 (100)
+    return 0; // Max Level
 };
 
 const formatCount = (num) => {
@@ -345,5 +434,31 @@ const handleLogout = () => {
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+/* Level Guide Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1050;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.level-guide-content {
+    background: #1e1e1e;
+    border: 1px solid #333;
+    width: 90%;
+    max-width: 400px;
+}
+.level-row {
+     border-bottom: 1px solid #333;
+}
+.level-row:last-child {
+    border-bottom: none;
 }
 </style>
